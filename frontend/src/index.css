@@ -109,6 +109,11 @@ input, select, textarea { font-family: var(--font-main); outline: none; border: 
   z-index: 1000;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
+/* Mobile-only elements: hidden on desktop by default */
+.mobile-header-right { display: none; }
+.mobile-search-row { display: none; }
+.mobile-menu-toggle { display: none; }
+
 .header-inner {
   max-width: 1400px;
   margin: 0 auto;
@@ -1515,13 +1520,51 @@ input, select, textarea { font-family: var(--font-main); outline: none; border: 
   .logo-tagline { display: none; }
   .logo-name { font-size: 14px; }
   .sell-btn span { display: none; }
-  .header-inner { flex-wrap: wrap; gap: 12px; padding: 12px 14px; justify-content: space-between; }
-  .search-bar { width: 100%; order: 3; border-radius: 12px; }
-  .header-actions { display: none; } /* Hidden on tablet too since toggle is present */
 
-  /* Navbar actions — hide text labels, keep icons */
-  .hdr-btn div { display: none; }
-  .hdr-btn { padding: 8px; }
+  /* On mobile: header-inner is just [Logo] [Right icons] side-by-side */
+  .header-inner {
+    flex-wrap: nowrap;
+    gap: 10px;
+    padding: 12px 14px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* Hide desktop-only search & action buttons */
+  .desktop-search { display: none !important; }
+  .desktop-actions { display: none !important; }
+
+  /* Show mobile search row (full-width bar under logo row) */
+  .mobile-search-row {
+    display: flex;
+    padding: 0 14px 12px;
+  }
+  .mobile-search-row .search-bar {
+    width: 100%;
+    border-radius: 12px;
+  }
+
+  /* Mobile right icons: cart + menu toggle */
+  .mobile-header-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-left: auto;
+  }
+  .mobile-cart-icon {
+    position: relative;
+    color: var(--white);
+  }
+  .mobile-menu-toggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--white);
+    cursor: pointer;
+    padding: 4px;
+  }
 
   /* Hero */
   .hero-section { grid-template-columns: 1fr; }

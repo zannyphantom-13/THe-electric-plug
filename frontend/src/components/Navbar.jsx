@@ -29,10 +29,11 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* 2. MAIN HEADER (Glassmorphism & High-end UI) */}
+      {/* 2. MAIN HEADER */}
       <header className="site-header">
         <div className="header-inner">
           
+          {/* Logo */}
           <Link to="/" className="site-logo">
             <div className="logo-img-wrap">
               <img src="/logo.jpeg" alt="The Electric Plug Logo" />
@@ -43,11 +44,8 @@ export default function Navbar() {
             </div>
           </Link>
 
-          <div className="mobile-menu-toggle" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ display: 'none', cursor: 'pointer', color: 'var(--white)', marginLeft: 'auto' }}>
-            <Menu size={24} />
-          </div>
-
-          <div className={`search-bar ${isSearchFocused ? 'focused' : ''}`} style={{ transition: 'all 0.3s ease', boxShadow: isSearchFocused ? '0 0 0 3px rgba(255, 94, 0, 0.4)' : 'none', border: isSearchFocused ? '1.5px solid var(--primary)' : '1.5px solid var(--dark-border)' }}>
+          {/* Desktop: Search Bar (centre) */}
+          <div className={`search-bar desktop-search ${isSearchFocused ? 'focused' : ''}`} style={{ transition: 'all 0.3s ease', boxShadow: isSearchFocused ? '0 0 0 3px rgba(255, 206, 30, 0.4)' : 'none', border: isSearchFocused ? '1.5px solid var(--primary)' : '1.5px solid var(--dark-border)' }}>
             <div style={{ display: 'flex', alignItems: 'center', background: 'transparent', borderRight: '1px solid var(--dark-border)', padding: '0 14px', cursor: 'pointer', color: 'var(--gray-1)' }}>
               <span style={{ fontSize: '13px', whiteSpace: 'nowrap' }}>All Categories</span>
               <ChevronDown size={14} style={{ marginLeft: '6px' }} />
@@ -64,7 +62,8 @@ export default function Navbar() {
             </button>
           </div>
 
-          <div className="header-actions">
+          {/* Desktop: Account Actions */}
+          <div className="header-actions desktop-actions">
             <Link to={user ? "/profile" : "/login"} className="hdr-btn" style={{ flexDirection: 'row', gap: '8px', padding: '10px 14px', alignItems: 'center' }}>
               <User size={22} className="icon" />
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
@@ -84,7 +83,7 @@ export default function Navbar() {
               </div>
             </Link>
 
-            <Link to="/cart" className="hdr-btn" style={{ flexDirection: 'row', gap: '8px', padding: '10px 14px', alignItems: 'center', background: 'rgba(255, 94, 0, 0.1)', border: '1px solid rgba(255, 94, 0, 0.3)', borderRadius: 'var(--radius-md)' }}>
+            <Link to="/cart" className="hdr-btn" style={{ flexDirection: 'row', gap: '8px', padding: '10px 14px', alignItems: 'center', background: 'rgba(255, 206, 30, 0.1)', border: '1px solid rgba(255, 206, 30, 0.3)', borderRadius: 'var(--radius-md)' }}>
               <div style={{ position: 'relative' }}>
                 <ShoppingCart size={22} className="icon" style={{ color: 'var(--primary)' }} />
                 <span className="cart-badge">{cartCount}</span>
@@ -95,10 +94,39 @@ export default function Navbar() {
               </div>
             </Link>
           </div>
+
+          {/* Mobile: Right side icons (Menu toggle + Cart) */}
+          <div className="mobile-header-right">
+            <Link to="/cart" className="mobile-cart-icon">
+              <div style={{ position: 'relative' }}>
+                <ShoppingCart size={24} style={{ color: 'var(--primary)' }} />
+                {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
+              </div>
+            </Link>
+            <button className="mobile-menu-toggle" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+              <Menu size={24} />
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile: Search bar row below logo row */}
+        <div className="mobile-search-row">
+          <div className={`search-bar ${isSearchFocused ? 'focused' : ''}`} style={{ transition: 'all 0.3s ease', boxShadow: isSearchFocused ? '0 0 0 3px rgba(255, 206, 30, 0.4)' : 'none', border: isSearchFocused ? '1.5px solid var(--primary)' : '1.5px solid var(--dark-border)' }}>
+            <input 
+              type="search" 
+              className="search-input" 
+              placeholder="Search for laptops, phones, TVs..." 
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
+            />
+            <button className="search-btn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Search size={18} />
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* 3. CATEGORY NAVIGATION (Deep Taxonomy Links) */}
+      {/* 3. CATEGORY NAVIGATION */}
       <nav className="cat-nav" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(18, 18, 26, 0.95)' }}>
         <div className="cat-nav-inner" style={{ padding: '0 20px' }}>
           <Link to="/shop" className="cat-link active" style={{ background: 'var(--primary)', color: 'var(--black)', borderRadius: '0', borderBottom: 'none' }}>
