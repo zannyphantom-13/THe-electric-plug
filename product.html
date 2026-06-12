@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Sony WH-1000XM5 Wireless Noise Cancelling Headphones - Shop at The Electric Plug." />
+  <title>Sony WH-1000XM5 - The Electric Plug</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- =============================================
+       SITE HEADER (Same as index.html)
+       ============================================= -->
+  <header class="site-header" role="banner">
+    <div class="header-inner">
+      <a href="index.html" class="site-logo">
+        <div class="logo-img-wrap">
+          <img src="WhatsApp Image 2026-06-10 at 16.07.09.jpeg" alt="The Electric Plug Logo" />
+        </div>
+        <div class="logo-text">
+          <span class="logo-name">The Electric Plug</span>
+          <span class="logo-tagline">Giving Quality you can always trust</span>
+        </div>
+      </a>
+      <div class="search-bar" role="search">
+        <input type="search" class="search-input" placeholder="Search for products, brands..." />
+        <button class="search-btn">🔍</button>
+      </div>
+      <div class="header-actions">
+        <button class="hdr-btn" id="cart-btn">
+          <span class="icon">🛒</span>
+          <span class="label">Cart</span>
+          <span class="cart-badge" id="cart-count">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="cat-nav">
+    <div class="cat-nav-inner">
+      <a href="shop.html" class="cat-link"><span class="cat-icon">🛍️</span> All Products</a>
+      <a href="#" class="cat-link"><span class="cat-icon">📱</span> Phones</a>
+      <a href="#" class="cat-link"><span class="cat-icon">💻</span> Laptops</a>
+      <a href="#" class="cat-link"><span class="cat-icon">📺</span> TVs</a>
+    </div>
+  </nav>
+
+  <!-- =============================================
+       MAIN CONTENT: PRODUCT DETAILS
+       ============================================= -->
+  <main class="main-content" id="main">
+    
+    <div class="text-primary" style="font-size:13px; font-weight:600; margin-bottom:16px;">
+      <a href="index.html" style="color:var(--gray-1)">Home</a> / 
+      <a href="shop.html" style="color:var(--gray-1)">Audio & Headphones</a> / 
+      Sony WH-1000XM5
+    </div>
+
+    <div class="product-detail-layout">
+      
+      <!-- 1. IMAGE GALLERY -->
+      <div class="product-gallery">
+        <div class="pg-main">
+          <span class="pg-badge">Top Rated</span>
+          🎧
+        </div>
+        <div class="pg-thumbnails">
+          <div class="pg-thumb active">🎧</div>
+          <div class="pg-thumb">📦</div>
+          <div class="pg-thumb">🔊</div>
+          <div class="pg-thumb">🔌</div>
+        </div>
+      </div>
+
+      <!-- 2. PRODUCT INFO -->
+      <div class="product-detail-info">
+        <div>
+          <div class="pd-brand">Sony</div>
+          <h1 class="pd-title">Sony WH-1000XM5 Wireless Noise Cancelling Headphones</h1>
+        </div>
+        
+        <div class="pd-rating">
+          <span class="stars" style="color:var(--primary); font-size:16px;">★★★★★</span>
+          <span style="font-weight:700; color:var(--white)">4.9</span>
+          <span>(342 verified ratings)</span>
+        </div>
+
+        <div>
+          <div class="pd-discount">-17% Discount</div>
+          <div class="pd-price-wrap">
+            <span class="pd-price">₦350,000</span>
+            <span class="pd-old-price">₦420,000</span>
+          </div>
+        </div>
+
+        <div class="pd-variants">
+          <div class="variant-title">Color: <span style="color:var(--white)">Midnight Black</span></div>
+          <div class="variant-options">
+            <button class="variant-btn active">Midnight Black</button>
+            <button class="variant-btn">Platinum Silver</button>
+            <button class="variant-btn">Midnight Blue</button>
+          </div>
+        </div>
+
+        <div class="pd-features">
+          <div class="pd-feature">
+            <span class="pd-feature-icon">🔋</span>
+            <span>Up to 30 hours of battery life with quick charging.</span>
+          </div>
+          <div class="pd-feature">
+            <span class="pd-feature-icon">🔇</span>
+            <span>Industry-leading noise cancellation optimized for you.</span>
+          </div>
+          <div class="pd-feature">
+            <span class="pd-feature-icon">🎙️</span>
+            <span>Ultra-clear, noise-free calls with precise voice pickup.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. ACTION SIDEBAR -->
+      <div class="product-action-sidebar">
+        <div class="pas-delivery">
+          <div class="pas-delivery-icon">🚚</div>
+          <div class="pas-delivery-text">
+            <strong>Free Delivery</strong>
+            <span>Estimated delivery: 2-4 working days across Lagos.</span>
+          </div>
+        </div>
+        <div class="pas-delivery" style="border-bottom:none; padding-bottom:0;">
+          <div class="pas-delivery-icon">🛡️</div>
+          <div class="pas-delivery-text">
+            <strong>Return Policy</strong>
+            <span>Free return within 7 days for defective items.</span>
+          </div>
+        </div>
+
+        <hr style="border:none; border-top:1px solid var(--dark-border); margin:0;" />
+
+        <div class="pas-qty">
+          <span>Quantity</span>
+          <div class="qty-selector">
+            <button onclick="this.nextElementSibling.stepDown()">-</button>
+            <input type="number" value="1" min="1" max="10" />
+            <button onclick="this.previousElementSibling.stepUp()">+</button>
+          </div>
+        </div>
+
+        <div>
+          <button class="pas-add-btn" onclick="addToCart('Sony WH-1000XM5', 350000, '🎧')">
+            🛒 Add to Cart
+          </button>
+          <button class="pas-wish-btn" onclick="showToast('Added to Wishlist!', 'success')" style="margin-top:10px;">
+            ❤️ Add to Wishlist
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 4. PRODUCT TABS (Description, Specs, Reviews) -->
+    <div class="product-tabs-section">
+      <div class="tabs-nav">
+        <button class="tab-btn active" onclick="switchTab(0)">Overview</button>
+        <button class="tab-btn" onclick="switchTab(1)">Specifications</button>
+        <button class="tab-btn" onclick="switchTab(2)">Verified Reviews (342)</button>
+      </div>
+      
+      <!-- Overview -->
+      <div class="tab-content active" id="tab-0">
+        <h3>The Best Noise Cancellation Keeps Getting Better</h3>
+        <p>See how these Sony noise cancelling headphones combine our best ever noise cancelling technology with superlative sound for a truly remarkable listening experience. The WH-1000XM5 headphones rewrite the rules for distraction-free listening and flawless call clarity. Two processors control multiple microphones for unprecedented noise cancelling.</p>
+        <p>With Auto NC Optimizer, noise cancelling is automatically optimized based on your wearing conditions and environment.</p>
+      </div>
+
+      <!-- Specs -->
+      <div class="tab-content" id="tab-1">
+        <h3>Technical Specifications</h3>
+        <table class="specs-table">
+          <tr><th>Headphone Type</th><td>Closed, dynamic</td></tr>
+          <tr><th>Driver Unit</th><td>30mm</td></tr>
+          <tr><th>Frequency Response</th><td>4 Hz - 40,000 Hz</td></tr>
+          <tr><th>Bluetooth Version</th><td>Bluetooth Specification Version 5.2</td></tr>
+          <tr><th>Battery Life</th><td>Max. 30 hrs (NC ON) , Max. 40 hrs (NC OFF)</td></tr>
+          <tr><th>Weight</th><td>Approx. 250g</td></tr>
+        </table>
+      </div>
+
+      <!-- Reviews -->
+      <div class="tab-content" id="tab-2">
+        <div class="reviews-grid">
+          <div class="rating-summary">
+            <h3>Customer Feedback</h3>
+            <div>
+              <div class="rs-score">4.9</div>
+              <div class="rs-stars" style="color:var(--primary)">★★★★★</div>
+              <div style="font-size:13px; color:var(--gray-1)">Based on 342 reviews</div>
+            </div>
+            <div class="rs-bars">
+              <div class="rs-bar-row">5★ <div class="rs-bar-track"><div class="rs-bar-fill" style="width: 85%"></div></div> 290</div>
+              <div class="rs-bar-row">4★ <div class="rs-bar-track"><div class="rs-bar-fill" style="width: 10%"></div></div> 35</div>
+              <div class="rs-bar-row">3★ <div class="rs-bar-track"><div class="rs-bar-fill" style="width: 3%"></div></div> 10</div>
+              <div class="rs-bar-row">2★ <div class="rs-bar-track"><div class="rs-bar-fill" style="width: 1%"></div></div> 4</div>
+              <div class="rs-bar-row">1★ <div class="rs-bar-track"><div class="rs-bar-fill" style="width: 1%"></div></div> 3</div>
+            </div>
+          </div>
+          <div class="review-list">
+            <div class="review-card">
+              <div class="rc-header">
+                <span class="rc-user">Hassan Adebayo <span style="color:var(--success);font-size:11px;">✓ Verified Buyer</span></span>
+                <span class="rc-date">May 12, 2026</span>
+              </div>
+              <div class="rc-stars">★★★★★</div>
+              <div class="rc-text">Absolutely incredible noise cancellation. I upgraded from the XM4s and the difference is noticeable, especially for higher frequencies like voices. Highly recommend buying from The Electric Plug, delivery was very fast!</div>
+            </div>
+            <div class="review-card">
+              <div class="rc-header">
+                <span class="rc-user">Chidinma Okafor <span style="color:var(--success);font-size:11px;">✓ Verified Buyer</span></span>
+                <span class="rc-date">April 28, 2026</span>
+              </div>
+              <div class="rc-stars">★★★★★</div>
+              <div class="rc-text">The sound quality is unmatched. Very comfortable for long hours of wearing. Worth every Naira.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="site-footer" style="margin-top:60px;">
+    <div class="footer-bottom" style="max-width:1400px; margin:0 auto;">
+      <div class="footer-copyright">© 2026 <span>The Electric Plug</span>. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <!-- CART OVERLAY -->
+  <div class="cart-overlay" id="cart-overlay"></div>
+  <aside class="cart-drawer" id="cart-drawer">
+    <div class="cart-drawer-header">
+      <div class="cart-drawer-title">🛒 My Cart (<span id="cart-item-count">0</span>)</div>
+      <button class="cart-close" id="cart-close">✕</button>
+    </div>
+    <div class="cart-body" id="cart-body">
+      <div class="cart-empty" id="cart-empty">
+        <div class="cart-empty-icon">🛒</div>
+        <p>Your cart is empty.</p>
+      </div>
+      <div id="cart-items"></div>
+    </div>
+    <div class="cart-footer" id="cart-footer" style="display:none;">
+      <div class="cart-total">
+        <span class="cart-total-label">Total</span>
+        <span class="cart-total-amount" id="cart-total">₦0</span>
+      </div>
+      <button class="checkout-btn">🔒 Checkout</button>
+    </div>
+  </aside>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="app.js"></script>
+  <script>
+    // Tab Switching Logic
+    function switchTab(index) {
+      document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === index);
+      });
+      document.querySelectorAll('.tab-content').forEach((content, i) => {
+        content.classList.toggle('active', i === index);
+      });
+    }
+
+    // Thumbnail Switching Logic
+    document.querySelectorAll('.pg-thumb').forEach(thumb => {
+      thumb.addEventListener('click', () => {
+        document.querySelectorAll('.pg-thumb').forEach(t => t.classList.remove('active'));
+        thumb.classList.add('active');
+        document.querySelector('.pg-main').innerHTML = thumb.innerHTML; // Simple demo update
+      });
+    });
+  </script>
+</body>
+</html>

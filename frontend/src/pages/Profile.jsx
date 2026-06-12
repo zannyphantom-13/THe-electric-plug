@@ -1,0 +1,169 @@
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { User, Package, Heart, MapPin, Bell, Settings, LogOut, ChevronRight, ShoppingCart, Star, ShieldCheck } from 'lucide-react';
+
+const mockOrders = [
+  { id: '#TEP-001', product: 'Samsung Galaxy S24 Ultra', status: 'Delivered', date: 'Jun 8, 2026', amount: '₦1,550,000', img: '/images/phone.png' },
+  { id: '#TEP-002', product: 'HP Envy x360 Laptop', status: 'In Transit', date: 'Jun 10, 2026', amount: '₦1,150,000', img: '/images/laptop.png' },
+  { id: '#TEP-003', product: 'Sony PlayStation 5', status: 'Processing', date: 'Jun 12, 2026', amount: '₦850,000', img: '/images/ps5.png' },
+];
+
+const statusColor = { Delivered: '#00E676', 'In Transit': '#00B0FF', Processing: '#FFC400' };
+
+export default function Profile() {
+  const [activeTab, setActiveTab] = useState('orders');
+
+  const tabs = [
+    { id: 'orders', label: 'My Orders', icon: Package },
+    { id: 'wishlist', label: 'Wishlist', icon: Heart },
+    { id: 'addresses', label: 'Addresses', icon: MapPin },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'settings', label: 'Settings', icon: Settings },
+  ];
+
+  return (
+    <main className="main-content" style={{ padding: '28px 20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+        
+        {/* Sidebar */}
+        <aside>
+          <div style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+            {/* Profile Header */}
+            <div style={{ background: 'linear-gradient(135deg, #1a0a00, #2d1200)', padding: '28px 24px', textAlign: 'center' }}>
+              <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', fontSize: '32px', fontWeight: 900, color: 'var(--black)', boxShadow: '0 8px 24px var(--primary-glow)' }}>H</div>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 800, color: 'var(--white)' }}>Hassan Doe</h2>
+              <p style={{ fontSize: '13px', color: 'var(--gray-1)', marginTop: '4px' }}>hassan@email.com</p>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '16px' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>3</div>
+                  <div style={{ fontSize: '11px', color: 'var(--gray-1)' }}>Orders</div>
+                </div>
+                <div style={{ width: '1px', background: 'var(--dark-border)' }}></div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>5</div>
+                  <div style={{ fontSize: '11px', color: 'var(--gray-1)' }}>Wishlist</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Nav links */}
+            <nav style={{ padding: '12px 0' }}>
+              {tabs.map(tab => (
+                <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 24px', background: activeTab === tab.id ? 'rgba(255,94,0,0.1)' : 'transparent', color: activeTab === tab.id ? 'var(--primary)' : 'var(--gray-1)', borderLeft: `3px solid ${activeTab === tab.id ? 'var(--primary)' : 'transparent'}`, transition: 'var(--transition)', fontSize: '14px', fontWeight: 600, cursor: 'pointer', border: 'none' }}>
+                  <tab.icon size={18} />
+                  {tab.label}
+                  <ChevronRight size={16} style={{ marginLeft: 'auto', opacity: activeTab === tab.id ? 1 : 0.4 }} />
+                </button>
+              ))}
+              <div style={{ height: '1px', background: 'var(--dark-border)', margin: '8px 0' }}></div>
+              <button style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 24px', background: 'transparent', color: 'var(--danger)', fontSize: '14px', fontWeight: 600, cursor: 'pointer', border: 'none' }}>
+                <LogOut size={18} /> Sign Out
+              </button>
+            </nav>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <div>
+          {activeTab === 'orders' && (
+            <div>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '22px', fontWeight: 800, marginBottom: '20px' }}>My Orders</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {mockOrders.map(order => (
+                  <div key={order.id} style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius-md)', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', transition: 'var(--transition)' }}>
+                    <div style={{ width: '72px', height: '72px', background: 'var(--dark)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                      <img src={order.img} alt={order.product} style={{ width: '100%', height: '100%', objectFit: 'contain' }} onError={e => { e.target.style.display='none'; }} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                        <h3 style={{ fontSize: '15px', fontWeight: 700 }}>{order.product}</h3>
+                        <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>{order.amount}</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <span style={{ fontSize: '12px', color: 'var(--gray-1)' }}>{order.id} · {order.date}</span>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: statusColor[order.status], background: `${statusColor[order.status]}18`, padding: '3px 10px', borderRadius: '20px' }}>{order.status}</span>
+                      </div>
+                    </div>
+                    <button style={{ flexShrink: 0, background: 'transparent', border: '1px solid var(--dark-border)', color: 'var(--gray-1)', padding: '8px 16px', borderRadius: 'var(--radius-sm)', fontSize: '13px', fontWeight: 600, cursor: 'pointer', transition: 'var(--transition)' }} onMouseEnter={e => { e.target.style.borderColor='var(--primary)'; e.target.style.color='var(--primary)'; }} onMouseLeave={e => { e.target.style.borderColor='var(--dark-border)'; e.target.style.color='var(--gray-1)'; }}>
+                      View Details
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'wishlist' && (
+            <div>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '22px', fontWeight: 800, marginBottom: '20px' }}>Wishlist</h2>
+              <div style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius-md)', padding: '60px', textAlign: 'center' }}>
+                <Heart size={64} color="var(--primary)" strokeWidth={1} style={{ margin: '0 auto 16px' }} />
+                <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>Your Wishlist is Empty</h3>
+                <p style={{ color: 'var(--gray-1)', marginBottom: '20px' }}>Save your favourite items to buy later.</p>
+                <Link to="/shop" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'var(--primary)', color: 'var(--black)', padding: '12px 24px', borderRadius: 'var(--radius-md)', fontWeight: 700 }}><ShoppingCart size={16} /> Browse Products</Link>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'addresses' && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '22px', fontWeight: 800 }}>Delivery Addresses</h2>
+                <button style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--primary)', color: 'var(--black)', padding: '10px 20px', borderRadius: 'var(--radius-md)', fontWeight: 700, fontSize: '13px', cursor: 'pointer', border: 'none' }}>+ Add Address</button>
+              </div>
+              <div style={{ background: 'var(--dark-card)', border: '1px solid var(--primary)', borderRadius: 'var(--radius-md)', padding: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <MapPin size={20} color="var(--primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <div>
+                      <div style={{ fontWeight: 700, marginBottom: '4px' }}>Home <span style={{ background: 'rgba(255,94,0,0.1)', color: 'var(--primary)', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '20px', marginLeft: '8px' }}>Default</span></div>
+                      <div style={{ fontSize: '14px', color: 'var(--gray-1)', lineHeight: 1.7 }}>5 Electronics Way, Ikeja<br />Lagos State, Nigeria</div>
+                    </div>
+                  </div>
+                  <button style={{ background: 'transparent', border: '1px solid var(--dark-border)', color: 'var(--gray-1)', padding: '6px 14px', borderRadius: 'var(--radius-sm)', fontSize: '13px', cursor: 'pointer' }}>Edit</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <div>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '22px', fontWeight: 800, marginBottom: '20px' }}>Account Settings</h2>
+              <div style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius-md)', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {['First Name', 'Last Name', 'Email Address', 'Phone Number'].map(field => (
+                  <div key={field}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--gray-1)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '8px' }}>{field}</label>
+                    <input type="text" placeholder={`Enter ${field.toLowerCase()}`} style={{ width: '100%', background: 'var(--dark)', border: '1.5px solid var(--dark-border)', color: 'var(--white)', padding: '12px 16px', borderRadius: 'var(--radius-sm)', fontSize: '14px' }} onFocus={e => e.target.style.borderColor='var(--primary)'} onBlur={e => e.target.style.borderColor='var(--dark-border)'} />
+                  </div>
+                ))}
+                <button style={{ alignSelf: 'flex-start', background: 'var(--primary)', color: 'var(--black)', padding: '12px 28px', borderRadius: 'var(--radius-md)', fontWeight: 700, fontSize: '14px', cursor: 'pointer', border: 'none' }}>Save Changes</button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'notifications' && (
+            <div>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '22px', fontWeight: 800, marginBottom: '20px' }}>Notifications</h2>
+              {[
+                { icon: ShoppingCart, title: 'Your order #TEP-002 is in transit', time: '2 hours ago', read: false },
+                { icon: Star, title: 'Rate your recent purchase: Samsung Galaxy S24 Ultra', time: '1 day ago', read: false },
+                { icon: ShieldCheck, title: 'Your email address has been verified', time: '4 days ago', read: true },
+              ].map((notif, i) => (
+                <div key={i} style={{ background: notif.read ? 'var(--dark-card)' : 'rgba(255,94,0,0.05)', border: `1px solid ${notif.read ? 'var(--dark-border)' : 'rgba(255,94,0,0.2)'}`, borderRadius: 'var(--radius-md)', padding: '16px 20px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(255,94,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <notif.icon size={20} color="var(--primary)" />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontSize: '14px', fontWeight: notif.read ? 400 : 600, color: notif.read ? 'var(--gray-1)' : 'var(--white)', marginBottom: '4px' }}>{notif.title}</p>
+                    <span style={{ fontSize: '12px', color: 'var(--gray-2)' }}>{notif.time}</span>
+                  </div>
+                  {!notif.read && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)', flexShrink: 0 }}></div>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}

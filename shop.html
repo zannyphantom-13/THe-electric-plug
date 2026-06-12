@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Shop the best electronics at The Electric Plug. Browse our wide selection of smartphones, laptops, TVs, and home appliances." />
+  <title>Shop Electronics | The Electric Plug</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- =============================================
+       SITE HEADER (Same as index.html)
+       ============================================= -->
+  <header class="site-header" role="banner">
+    <div class="header-inner">
+      <!-- Logo -->
+      <a href="index.html" class="site-logo" aria-label="The Electric Plug - Home">
+        <div class="logo-img-wrap">
+          <img src="WhatsApp Image 2026-06-10 at 16.07.09.jpeg" alt="The Electric Plug Logo" />
+        </div>
+        <div class="logo-text">
+          <span class="logo-name">The Electric Plug</span>
+          <span class="logo-tagline">Giving Quality you can always trust</span>
+        </div>
+      </a>
+
+      <!-- Search Bar -->
+      <div class="search-bar" role="search" style="position:relative;">
+        <select class="search-category" id="search-category" aria-label="Search category">
+          <option>All Categories</option>
+          <option>Smartphones</option>
+          <option>Laptops</option>
+          <option>Televisions</option>
+        </select>
+        <input type="search" class="search-input" id="main-search" placeholder="Search for products, brands..." autocomplete="off" />
+        <button class="search-btn" id="search-btn">🔍</button>
+      </div>
+
+      <!-- Header Actions -->
+      <div class="header-actions">
+        <button class="hdr-btn" id="account-btn">
+          <span class="icon">👤</span>
+          <span class="label">Account</span>
+        </button>
+        <button class="hdr-btn">
+          <span class="icon">❤️</span>
+          <span class="label">Wishlist</span>
+        </button>
+        <button class="hdr-btn" id="cart-btn">
+          <span class="icon">🛒</span>
+          <span class="label">Cart</span>
+          <span class="cart-badge" id="cart-count">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- =============================================
+       CATEGORY NAV
+       ============================================= -->
+  <nav class="cat-nav">
+    <div class="cat-nav-inner">
+      <a href="shop.html" class="cat-link active"><span class="cat-icon">🛍️</span> All Products</a>
+      <a href="#" class="cat-link"><span class="cat-icon">📱</span> Phones</a>
+      <a href="#" class="cat-link"><span class="cat-icon">💻</span> Laptops</a>
+      <a href="#" class="cat-link"><span class="cat-icon">📺</span> TVs</a>
+      <a href="#" class="cat-link"><span class="cat-icon">🏠</span> Appliances</a>
+    </div>
+  </nav>
+
+  <!-- =============================================
+       MAIN CONTENT: SHOP PAGE
+       ============================================= -->
+  <main class="main-content" id="main">
+    
+    <div class="section-header">
+      <h1 class="section-title">Shop <span class="title-accent">Electronics</span></h1>
+      <div class="text-primary" style="font-size:13px; font-weight:600;">Home / Shop</div>
+    </div>
+
+    <div class="shop-layout">
+      <!-- SIDEBAR FILTERS -->
+      <aside class="shop-sidebar">
+        
+        <!-- Category Filter -->
+        <div class="filter-group">
+          <div class="filter-title">Category</div>
+          <div class="filter-list">
+            <label class="filter-item">
+              <input type="checkbox" class="filter-checkbox" checked />
+              Smartphones <span class="filter-count">124</span>
+            </label>
+            <label class="filter-item">
+              <input type="checkbox" class="filter-checkbox" />
+              Laptops <span class="filter-count">86</span>
+            </label>
+            <label class="filter-item">
+              <input type="checkbox" class="filter-checkbox" />
+              Televisions <span class="filter-count">42</span>
+            </label>
+            <label class="filter-item">
+              <input type="checkbox" class="filter-checkbox" />
+              Audio & Headphones <span class="filter-count">95</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Brand Filter -->
+        <div class="filter-group">
+          <div class="filter-title">Brand</div>
+          <div class="filter-list">
+            <label class="filter-item">
+              <input type="checkbox" class="filter-checkbox" />
+              Samsung <span class="filter-count">56</span>
+            </label>
+            <label class="filter-item">
+              <input type="checkbox" class="filter-checkbox" />
+              Apple <span class="filter-count">38</span>
+            </label>
+            <label class="filter-item">
+              <input type="checkbox" class="filter-checkbox" />
+              Sony <span class="filter-count">24</span>
+            </label>
+            <label class="filter-item">
+              <input type="checkbox" class="filter-checkbox" />
+              LG <span class="filter-count">31</span>
+            </label>
+            <label class="filter-item">
+              <input type="checkbox" class="filter-checkbox" />
+              HP <span class="filter-count">45</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Price Range -->
+        <div class="filter-group">
+          <div class="filter-title">Price (₦)</div>
+          <div class="price-inputs">
+            <input type="number" class="price-input" placeholder="Min" min="0" />
+            <span>-</span>
+            <input type="number" class="price-input" placeholder="Max" min="0" />
+          </div>
+          <button class="apply-filter-btn" onclick="showToast('Filters Applied!', 'success')">Apply Filter</button>
+        </div>
+
+        <!-- Rating Filter -->
+        <div class="filter-group">
+          <div class="filter-title">Customer Rating</div>
+          <div class="filter-list">
+            <label class="filter-item">
+              <input type="checkbox" class="filter-checkbox" />
+              <span class="stars" style="color:var(--primary)">★★★★☆</span> & Up
+            </label>
+            <label class="filter-item">
+              <input type="checkbox" class="filter-checkbox" />
+              <span class="stars" style="color:var(--primary)">★★★☆☆</span> & Up
+            </label>
+            <label class="filter-item">
+              <input type="checkbox" class="filter-checkbox" />
+              <span class="stars" style="color:var(--primary)">★★☆☆☆</span> & Up
+            </label>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- MAIN SHOP AREA -->
+      <section class="shop-main">
+        
+        <!-- Toolbar -->
+        <div class="shop-toolbar">
+          <div class="shop-results-count">Showing <span>1-12</span> of <span>342</span> results</div>
+          
+          <div class="shop-sort-wrap">
+            <span class="sort-label">Sort by:</span>
+            <select class="sort-select">
+              <option>Recommended</option>
+              <option>Newest Arrivals</option>
+              <option>Price: Low to High</option>
+              <option>Price: High to Low</option>
+              <option>Customer Rating</option>
+            </select>
+            
+            <div class="view-toggles">
+              <button class="view-btn active" title="Grid View">🔲</button>
+              <button class="view-btn" title="List View">☰</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="shop-grid" id="shop-products">
+          <!-- Will be populated by JS, but we'll put some static placeholders too so it looks good if JS is off -->
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+          <button class="page-btn disabled" aria-label="Previous page">‹</button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <span style="color:var(--gray-1)">...</span>
+          <button class="page-btn">12</button>
+          <button class="page-btn" aria-label="Next page">›</button>
+        </div>
+
+      </section>
+    </div>
+
+  </main>
+
+  <!-- =============================================
+       FOOTER & CART OVERLAYS (Same as index.html)
+       ============================================= -->
+  <footer class="site-footer" role="contentinfo" style="margin-top:60px;">
+    <div class="footer-bottom" style="max-width:1400px; margin:0 auto;">
+      <div class="footer-copyright">© 2026 <span>The Electric Plug</span>. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <div class="cart-overlay" id="cart-overlay"></div>
+  <aside class="cart-drawer" id="cart-drawer">
+    <div class="cart-drawer-header">
+      <div class="cart-drawer-title">🛒 My Cart (<span id="cart-item-count">0</span>)</div>
+      <button class="cart-close" id="cart-close">✕</button>
+    </div>
+    <div class="cart-body" id="cart-body">
+      <div class="cart-empty" id="cart-empty">
+        <div class="cart-empty-icon">🛒</div>
+        <p>Your cart is empty.</p>
+      </div>
+      <div id="cart-items"></div>
+    </div>
+    <div class="cart-footer" id="cart-footer" style="display:none;">
+      <div class="cart-total">
+        <span class="cart-total-label">Total</span>
+        <span class="cart-total-amount" id="cart-total">₦0</span>
+      </div>
+      <button class="checkout-btn">🔒 Checkout</button>
+    </div>
+  </aside>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Script for shared functionality and rendering shop products -->
+  <script src="app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Render shop products using existing productData from app.js
+      const shopGrid = document.getElementById('shop-products');
+      if (shopGrid && typeof productData !== 'undefined') {
+        // Combine arrays to show more products
+        const allProducts = [...productData.featured, ...productData.newArrivals, ...productData.flashSale];
+        shopGrid.innerHTML = allProducts.map(p => createProductCard(p)).join('');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="The Electric Plug - Nigeria's premier electronics store. Shop smartphones, laptops, TVs, home appliances and more with guaranteed quality you can always trust." />
+  <meta name="keywords" content="electronics, smartphones, laptops, TVs, home appliances, Nigeria, online shopping" />
+  <meta property="og:title" content="The Electric Plug | Giving Quality You Can Always Trust" />
+  <meta property="og:description" content="Shop the best electronics deals in Nigeria. Free delivery on orders above ₦50,000." />
+  <title>The Electric Plug | Quality Electronics You Can Always Trust</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- =============================================
+       ANNOUNCEMENT BAR
+       ============================================= -->
+  <div class="announcement-bar" role="banner" aria-label="Promotional announcement">
+    <div class="ann-marquee">
+      <span><span class="ann-icon">🚚</span> FREE DELIVERY on orders above ₦50,000</span>
+      <span>•</span>
+      <span><span class="ann-icon">⚡</span> Flash Sale ends in <strong id="ann-timer">02:14:37</strong></span>
+      <span>•</span>
+      <span><span class="ann-icon">🔒</span> 100% Secure Payments &amp; Genuine Products</span>
+      <span>•</span>
+      <span><span class="ann-icon">📞</span> Call Us: 0800-ELECTRIC</span>
+    </div>
+  </div>
+
+  <!-- =============================================
+       SITE HEADER
+       ============================================= -->
+  <header class="site-header" role="banner">
+    <div class="header-inner">
+
+      <!-- Logo -->
+      <a href="/" class="site-logo" aria-label="The Electric Plug - Home">
+        <div class="logo-img-wrap">
+          <img src="WhatsApp Image 2026-06-10 at 16.07.09.jpeg" alt="The Electric Plug Logo" />
+        </div>
+        <div class="logo-text">
+          <span class="logo-name">The Electric Plug</span>
+          <span class="logo-tagline">Giving Quality you can always trust</span>
+        </div>
+      </a>
+
+      <!-- Search Bar -->
+      <div class="search-bar" role="search" style="position:relative;">
+        <select class="search-category" id="search-category" aria-label="Search category">
+          <option>All Categories</option>
+          <option>Smartphones</option>
+          <option>Laptops</option>
+          <option>Televisions</option>
+          <option>Audio</option>
+          <option>Home Appliances</option>
+          <option>Accessories</option>
+          <option>Gaming</option>
+        </select>
+        <input
+          type="search"
+          class="search-input"
+          id="main-search"
+          placeholder="Search for products, brands..."
+          aria-label="Search products"
+          autocomplete="off"
+        />
+        <button class="search-btn" id="search-btn" aria-label="Search">🔍</button>
+        <div class="search-dropdown" id="search-dropdown" role="listbox">
+          <div class="search-suggestion" role="option">📱 iPhone 15 Pro Max</div>
+          <div class="search-suggestion" role="option">💻 Dell XPS Laptop</div>
+          <div class="search-suggestion" role="option">📺 Samsung 65" 4K TV</div>
+          <div class="search-suggestion" role="option">🎧 Sony WH-1000XM5 Headphones</div>
+          <div class="search-suggestion" role="option">🎮 PlayStation 5</div>
+        </div>
+      </div>
+
+      <!-- Header Actions -->
+      <div class="header-actions">
+        <button class="hdr-btn" id="account-btn" aria-label="My Account">
+          <span class="icon">👤</span>
+          <span class="label">Account</span>
+        </button>
+        <button class="hdr-btn" aria-label="My Orders">
+          <span class="icon">📦</span>
+          <span class="label">Orders</span>
+        </button>
+        <button class="hdr-btn" aria-label="Wishlist">
+          <span class="icon">❤️</span>
+          <span class="label">Wishlist</span>
+        </button>
+        <button class="hdr-btn" id="cart-btn" aria-label="Shopping Cart">
+          <span class="icon">🛒</span>
+          <span class="label">Cart</span>
+          <span class="cart-badge" id="cart-count">0</span>
+        </button>
+        <button class="sell-btn" aria-label="Sell on The Electric Plug">
+          <span>🏪</span>
+          <span>Sell</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- =============================================
+       CATEGORY NAV
+       ============================================= -->
+  <nav class="cat-nav" aria-label="Product categories">
+    <div class="cat-nav-inner">
+      <a href="#" class="cat-link active" id="cat-all">
+        <span class="cat-icon">🏠</span> All Categories
+      </a>
+      <a href="#" class="cat-link" id="cat-phones">
+        <span class="cat-icon">📱</span> Phones &amp; Tablets
+      </a>
+      <a href="#" class="cat-link" id="cat-laptops">
+        <span class="cat-icon">💻</span> Computers &amp; Laptops
+      </a>
+      <a href="#" class="cat-link" id="cat-tv">
+        <span class="cat-icon">📺</span> TVs &amp; Audio
+      </a>
+      <a href="#" class="cat-link" id="cat-appliances">
+        <span class="cat-icon">🏠</span> Home Appliances
+      </a>
+      <a href="#" class="cat-link" id="cat-gaming">
+        <span class="cat-icon">🎮</span> Gaming
+      </a>
+      <a href="#" class="cat-link" id="cat-camera">
+        <span class="cat-icon">📷</span> Cameras
+      </a>
+      <a href="#" class="cat-link" id="cat-accessories">
+        <span class="cat-icon">🎧</span> Accessories
+      </a>
+      <a href="#" class="cat-link" id="cat-power">
+        <span class="cat-icon">🔋</span> Power &amp; Electrical
+      </a>
+      <a href="#" class="cat-link" id="cat-smart-home">
+        <span class="cat-icon">🏡</span> Smart Home
+      </a>
+      <a href="#" class="cat-link" id="cat-deals">
+        <span class="cat-icon">🔥</span> Hot Deals
+      </a>
+    </div>
+  </nav>
+
+  <!-- =============================================
+       MAIN CONTENT
+       ============================================= -->
+  <main class="main-content" id="main">
+
+    <!-- ---- HERO SECTION ---- -->
+    <section class="hero-section" aria-label="Featured promotions">
+
+      <!-- Hero Carousel -->
+      <div class="hero-carousel" role="region" aria-label="Hero slideshow" aria-roledescription="carousel">
+        <div class="carousel-track" id="carousel-track">
+
+          <!-- Slide 1: iPhone -->
+          <div class="carousel-slide slide-1" role="group" aria-roledescription="slide" aria-label="Slide 1 of 3">
+            <div class="slide-content">
+              <span class="slide-badge">🔥 Best Seller</span>
+              <h1 class="slide-title">iPhone 15 Pro<br /><span>Titanium</span> Beast</h1>
+              <p class="slide-desc">The most advanced iPhone ever. Pro camera system, A17 Pro chip, USB‑C connectivity.</p>
+              <div class="slide-price-wrap">
+                <div class="slide-old-price">₦980,000</div>
+                <div class="slide-new-price">₦849,000</div>
+              </div>
+              <button class="slide-btn" onclick="addToCart('iPhone 15 Pro Max', 849000, '📱')">🛒 Shop Now</button>
+            </div>
+            <span class="slide-visual">📱</span>
+          </div>
+
+          <!-- Slide 2: Samsung TV -->
+          <div class="carousel-slide slide-2" role="group" aria-roledescription="slide" aria-label="Slide 2 of 3">
+            <div class="slide-content">
+              <span class="slide-badge">⚡ Flash Deal</span>
+              <h2 class="slide-title">Samsung <span>QLED</span><br />65" 4K TV</h2>
+              <p class="slide-desc">Quantum Matrix Technology. Breathtaking picture quality with AI upscaling.</p>
+              <div class="slide-price-wrap">
+                <div class="slide-old-price">₦620,000</div>
+                <div class="slide-new-price">₦480,000</div>
+              </div>
+              <button class="slide-btn" onclick="addToCart('Samsung 65\" QLED TV', 480000, '📺')">🛒 Shop Now</button>
+            </div>
+            <span class="slide-visual">📺</span>
+          </div>
+
+          <!-- Slide 3: Laptop -->
+          <div class="carousel-slide slide-3" role="group" aria-roledescription="slide" aria-label="Slide 3 of 3">
+            <div class="slide-content">
+              <span class="slide-badge">🆕 New Arrival</span>
+              <h2 class="slide-title">MacBook <span>Pro M3</span><br />Powerhouse</h2>
+              <p class="slide-desc">M3 chip with 18-hour battery. Your most powerful Mac for creative work.</p>
+              <div class="slide-price-wrap">
+                <div class="slide-old-price">₦1,450,000</div>
+                <div class="slide-new-price">₦1,250,000</div>
+              </div>
+              <button class="slide-btn" onclick="addToCart('MacBook Pro M3', 1250000, '💻')">🛒 Shop Now</button>
+            </div>
+            <span class="slide-visual">💻</span>
+          </div>
+
+        </div>
+
+        <!-- Carousel Controls -->
+        <button class="carousel-btn prev" id="carousel-prev" aria-label="Previous slide">‹</button>
+        <button class="carousel-btn next" id="carousel-next" aria-label="Next slide">›</button>
+        <div class="carousel-dots" role="tablist" aria-label="Carousel slides">
+          <button class="dot active" role="tab" aria-selected="true" aria-label="Slide 1" data-index="0"></button>
+          <button class="dot" role="tab" aria-selected="false" aria-label="Slide 2" data-index="1"></button>
+          <button class="dot" role="tab" aria-selected="false" aria-label="Slide 3" data-index="2"></button>
+        </div>
+      </div>
+
+      <!-- Hero Sidebar -->
+      <aside class="hero-sidebar" aria-label="Promotional banners">
+        <div class="promo-card promo-card-1" onclick="showToast('📱 Exploring Phones & Tablets...', 'info')" role="button" tabindex="0" aria-label="Phones & Tablets promotion">
+          <span class="promo-emoji">📱</span>
+          <div class="promo-subtitle">New Arrivals</div>
+          <div class="promo-title">Phones &amp; Tablets</div>
+          <div class="promo-cta">Shop Now →</div>
+        </div>
+        <div class="promo-card promo-card-2" onclick="showToast('🎮 Exploring Gaming deals...', 'info')" role="button" tabindex="0" aria-label="Gaming promotion">
+          <span class="promo-emoji">🎮</span>
+          <div class="promo-subtitle">Up to 30% OFF</div>
+          <div class="promo-title">Gaming Zone</div>
+          <div class="promo-cta">Explore →</div>
+        </div>
+        <div class="promo-card promo-card-3" onclick="showToast('🏠 Exploring Home Appliances...', 'info')" role="button" tabindex="0" aria-label="Home Appliances promotion">
+          <span class="promo-emoji">🏠</span>
+          <div class="promo-subtitle">Best Deals</div>
+          <div class="promo-title">Home Appliances</div>
+          <div class="promo-cta">View All →</div>
+        </div>
+      </aside>
+
+    </section>
+
+    <!-- ---- QUICK CATEGORIES ---- -->
+    <section class="quick-cats section-gap" aria-label="Quick product categories">
+      <div class="quick-cats-grid" id="quick-cats-grid">
+        <div class="quick-cat-item" role="button" tabindex="0" aria-label="Smartphones">
+          <div class="qc-icon">📱</div>
+          <span class="qc-name">Smartphones</span>
+        </div>
+        <div class="quick-cat-item" role="button" tabindex="0" aria-label="Laptops">
+          <div class="qc-icon">💻</div>
+          <span class="qc-name">Laptops</span>
+        </div>
+        <div class="quick-cat-item" role="button" tabindex="0" aria-label="Televisions">
+          <div class="qc-icon">📺</div>
+          <span class="qc-name">Televisions</span>
+        </div>
+        <div class="quick-cat-item" role="button" tabindex="0" aria-label="Headphones">
+          <div class="qc-icon">🎧</div>
+          <span class="qc-name">Headphones</span>
+        </div>
+        <div class="quick-cat-item" role="button" tabindex="0" aria-label="Refrigerators">
+          <div class="qc-icon">🧊</div>
+          <span class="qc-name">Refrigerators</span>
+        </div>
+        <div class="quick-cat-item" role="button" tabindex="0" aria-label="Gaming">
+          <div class="qc-icon">🎮</div>
+          <span class="qc-name">Gaming</span>
+        </div>
+        <div class="quick-cat-item" role="button" tabindex="0" aria-label="Cameras">
+          <div class="qc-icon">📷</div>
+          <span class="qc-name">Cameras</span>
+        </div>
+        <div class="quick-cat-item" role="button" tabindex="0" aria-label="Smart Watches">
+          <div class="qc-icon">⌚</div>
+          <span class="qc-name">Smart Watches</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---- FLASH SALE ---- -->
+    <section class="flash-sale section-gap" aria-label="Flash sale products" id="flash-sale-section">
+      <div class="flash-header">
+        <div class="flash-title-wrap">
+          <div class="flash-title">
+            <span class="flash-icon">⚡</span> Flash Sale
+          </div>
+        </div>
+        <div class="countdown" role="timer" aria-label="Time remaining in flash sale">
+          <span class="countdown-label">Ends in:</span>
+          <div class="time-unit">
+            <span class="time-num" id="hours">02</span>
+            <span class="time-label">HRS</span>
+          </div>
+          <span class="time-sep">:</span>
+          <div class="time-unit">
+            <span class="time-num" id="minutes">14</span>
+            <span class="time-label">MIN</span>
+          </div>
+          <span class="time-sep">:</span>
+          <div class="time-unit">
+            <span class="time-num" id="seconds">37</span>
+            <span class="time-label">SEC</span>
+          </div>
+        </div>
+        <button class="see-all" aria-label="See all flash sale products">See All ›</button>
+      </div>
+
+      <div class="flash-products" id="flash-products">
+        <!-- Flash sale cards inserted by JS -->
+      </div>
+    </section>
+
+    <!-- ---- TRUST BADGES ---- -->
+    <section class="trust-section section-gap" aria-label="Our guarantees">
+      <div class="trust-item">
+        <span class="trust-icon">🚚</span>
+        <div class="trust-text">
+          <div class="trust-title">Free Delivery</div>
+          <div class="trust-sub">On orders above ₦50,000</div>
+        </div>
+      </div>
+      <div class="trust-item">
+        <span class="trust-icon">🔒</span>
+        <div class="trust-text">
+          <div class="trust-title">Secure Payment</div>
+          <div class="trust-sub">100% safe transactions</div>
+        </div>
+      </div>
+      <div class="trust-item">
+        <span class="trust-icon">✅</span>
+        <div class="trust-text">
+          <div class="trust-title">Genuine Products</div>
+          <div class="trust-sub">All items are 100% authentic</div>
+        </div>
+      </div>
+      <div class="trust-item">
+        <span class="trust-icon">↩️</span>
+        <div class="trust-text">
+          <div class="trust-title">Easy Returns</div>
+          <div class="trust-sub">7-day hassle-free returns</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---- BRAND BANNERS ---- -->
+    <section class="brand-banners section-gap" aria-label="Brand promotions">
+      <div class="brand-banner bb-1" role="button" tabindex="0" aria-label="Samsung promotion">
+        <div>
+          <div class="bb-eyebrow">Official Store</div>
+          <div class="bb-brand">Sam<span>sung</span></div>
+          <div class="bb-sub">Galaxy S24 Series — Up to ₦80,000 off</div>
+        </div>
+        <div class="bb-cta">Shop Samsung ›</div>
+        <span class="bb-icon">📱</span>
+      </div>
+      <div class="brand-banner bb-2" role="button" tabindex="0" aria-label="Apple promotion">
+        <div>
+          <div class="bb-eyebrow">Apple Deals</div>
+          <div class="bb-brand"><span>Apple</span> Week</div>
+          <div class="bb-sub">iPhone, MacBook & iPad on sale</div>
+        </div>
+        <div class="bb-cta">Shop Apple ›</div>
+        <span class="bb-icon">🍎</span>
+      </div>
+      <div class="brand-banner bb-3" role="button" tabindex="0" aria-label="Gaming promotion">
+        <div>
+          <div class="bb-eyebrow">Game On</div>
+          <div class="bb-brand"><span>Gaming</span> Hub</div>
+          <div class="bb-sub">PS5, Xbox, Nintendo & accessories</div>
+        </div>
+        <div class="bb-cta">Shop Gaming ›</div>
+        <span class="bb-icon">🎮</span>
+      </div>
+    </section>
+
+    <!-- ---- FEATURED PRODUCTS ---- -->
+    <section class="products-section section-gap" aria-label="Featured products" id="featured-section">
+      <div class="section-header">
+        <h2 class="section-title">Featured <span class="title-accent">Products</span></h2>
+        <button class="see-all" aria-label="See all featured products">See All ›</button>
+      </div>
+      <div class="products-grid" id="featured-products">
+        <!-- Inserted by JS -->
+      </div>
+    </section>
+
+    <!-- ---- NEW ARRIVALS ---- -->
+    <section class="products-section section-gap" aria-label="New arrivals" id="new-arrivals-section">
+      <div class="section-header">
+        <h2 class="section-title">New <span class="title-accent">Arrivals</span></h2>
+        <button class="see-all" aria-label="See all new arrivals">See All ›</button>
+      </div>
+      <div class="products-grid cols-4" id="new-arrivals">
+        <!-- Inserted by JS -->
+      </div>
+    </section>
+
+    <!-- ---- NEWSLETTER ---- -->
+    <section class="newsletter-section section-gap" aria-label="Newsletter signup">
+      <div class="newsletter-icon">📧</div>
+      <h2 class="newsletter-title">Get <span>Exclusive Deals</span> in Your Inbox</h2>
+      <p class="newsletter-sub">Subscribe to our newsletter and be the first to know about flash sales, new arrivals and exclusive discounts.</p>
+      <form class="newsletter-form" id="newsletter-form" onsubmit="handleNewsletter(event)" novalidate>
+        <input
+          type="email"
+          class="newsletter-input"
+          id="newsletter-email"
+          placeholder="Enter your email address..."
+          aria-label="Email address for newsletter"
+          required
+        />
+        <button type="submit" class="newsletter-btn">Subscribe 🎉</button>
+      </form>
+    </section>
+
+  </main>
+
+  <!-- =============================================
+       FOOTER
+       ============================================= -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="footer-inner">
+      <div class="footer-grid">
+
+        <!-- Brand Column -->
+        <div class="footer-brand">
+          <div class="site-logo" style="margin-bottom:12px;">
+            <div class="logo-img-wrap" style="width:44px;height:44px;">
+              <img src="WhatsApp Image 2026-06-10 at 16.07.09.jpeg" alt="The Electric Plug Logo" />
+            </div>
+            <div class="logo-text">
+              <span class="logo-name" style="font-size:15px;">The Electric Plug</span>
+              <span class="logo-tagline">Giving Quality you can always trust</span>
+            </div>
+          </div>
+          <p>Nigeria's most trusted electronics marketplace. We offer the best prices on genuine products with fast delivery across the country.</p>
+          <div class="social-links" aria-label="Social media links">
+            <a href="#" class="social-link" aria-label="Facebook">📘</a>
+            <a href="#" class="social-link" aria-label="Twitter/X">🐦</a>
+            <a href="#" class="social-link" aria-label="Instagram">📸</a>
+            <a href="#" class="social-link" aria-label="WhatsApp">💬</a>
+            <a href="#" class="social-link" aria-label="YouTube">▶️</a>
+          </div>
+        </div>
+
+        <!-- Products Column -->
+        <nav aria-label="Product categories footer links">
+          <div class="footer-col-title">Popular Categories</div>
+          <div class="footer-links">
+            <a href="#">📱 Smartphones</a>
+            <a href="#">💻 Laptops &amp; Computers</a>
+            <a href="#">📺 Televisions</a>
+            <a href="#">🎧 Audio &amp; Headphones</a>
+            <a href="#">📷 Cameras</a>
+            <a href="#">🎮 Gaming</a>
+            <a href="#">⌚ Smart Watches</a>
+          </div>
+        </nav>
+
+        <!-- Help Column -->
+        <nav aria-label="Help and support links">
+          <div class="footer-col-title">Help &amp; Support</div>
+          <div class="footer-links">
+            <a href="#">📦 Track Your Order</a>
+            <a href="#">↩️ Returns &amp; Refunds</a>
+            <a href="#">🔒 Payment Methods</a>
+            <a href="#">🚚 Delivery Information</a>
+            <a href="#">❓ FAQ</a>
+            <a href="#">💬 Live Chat</a>
+            <a href="#">📞 Contact Us</a>
+          </div>
+        </nav>
+
+        <!-- Company Column -->
+        <nav aria-label="Company information links">
+          <div class="footer-col-title">Company</div>
+          <div class="footer-links">
+            <a href="#">🏢 About Us</a>
+            <a href="#">🏪 Sell on Our Platform</a>
+            <a href="#">📰 Blog &amp; News</a>
+            <a href="#">💼 Careers</a>
+            <a href="#">🤝 Partner with Us</a>
+            <a href="#">📜 Terms &amp; Conditions</a>
+            <a href="#">🔐 Privacy Policy</a>
+          </div>
+        </nav>
+
+        <!-- Contact Column -->
+        <div>
+          <div class="footer-col-title">Contact Us</div>
+          <div class="footer-contact-item">
+            <span class="footer-contact-icon">📞</span>
+            <div class="footer-contact-text">
+              <strong>Customer Service</strong>
+              0800-ELECTRIC<br />Mon – Sat: 8am – 8pm
+            </div>
+          </div>
+          <div class="footer-contact-item">
+            <span class="footer-contact-icon">📧</span>
+            <div class="footer-contact-text">
+              <strong>Email Support</strong>
+              support@theelectricplug.ng
+            </div>
+          </div>
+          <div class="footer-contact-item">
+            <span class="footer-contact-icon">📍</span>
+            <div class="footer-contact-text">
+              <strong>Head Office</strong>
+              14 Adeola Odeku St, Victoria Island,<br />Lagos, Nigeria
+            </div>
+          </div>
+          <div class="footer-contact-item">
+            <span class="footer-contact-icon">💬</span>
+            <div class="footer-contact-text">
+              <strong>WhatsApp</strong>
+              +234 800 000 0000
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer Bottom -->
+      <div class="footer-bottom">
+        <div class="footer-copyright">
+          © 2026 <span>The Electric Plug</span>. All rights reserved. Made with ⚡ in Nigeria.
+        </div>
+        <div class="payment-methods" aria-label="Accepted payment methods">
+          <span class="payment-badge">💳 Visa</span>
+          <span class="payment-badge">💳 Mastercard</span>
+          <span class="payment-badge">🏦 Bank Transfer</span>
+          <span class="payment-badge">📱 USSD</span>
+          <span class="payment-badge">💰 Paystack</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =============================================
+       CART DRAWER
+       ============================================= -->
+  <div class="cart-overlay" id="cart-overlay" aria-hidden="true"></div>
+  <aside class="cart-drawer" id="cart-drawer" role="dialog" aria-modal="true" aria-label="Shopping cart">
+    <div class="cart-drawer-header">
+      <div class="cart-drawer-title">🛒 My Cart (<span id="cart-item-count">0</span>)</div>
+      <button class="cart-close" id="cart-close" aria-label="Close cart">✕</button>
+    </div>
+    <div class="cart-body" id="cart-body">
+      <div class="cart-empty" id="cart-empty">
+        <div class="cart-empty-icon">🛒</div>
+        <p>Your cart is empty.<br />Add some great electronics!</p>
+      </div>
+      <div id="cart-items"></div>
+    </div>
+    <div class="cart-footer" id="cart-footer" style="display:none;">
+      <div class="cart-total">
+        <span class="cart-total-label">Total</span>
+        <span class="cart-total-amount" id="cart-total">₦0</span>
+      </div>
+      <button class="checkout-btn" onclick="showToast('🎉 Redirecting to checkout...', 'success')">
+        🔒 Proceed to Checkout
+      </button>
+    </div>
+  </aside>
+
+  <!-- =============================================
+       TOAST CONTAINER
+       ============================================= -->
+  <div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
