@@ -13,12 +13,15 @@ import Profile from './pages/Profile';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Wishlist from './pages/Wishlist';
+import ScrollToTop from './components/ScrollToTop';
+import FloatingWidgets from './components/FloatingWidgets';
 import { AppProvider } from './context/AppContext';
 
 export default function App() {
   return (
     <AppProvider>
       <Router>
+        <ScrollToTop />
         <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
@@ -34,6 +37,7 @@ export default function App() {
           <Route path="/checkout" element={<Checkout />} />
         </Routes>
         <Footer />
+        <FloatingWidgets />
       </Router>
     </AppProvider>
   );
