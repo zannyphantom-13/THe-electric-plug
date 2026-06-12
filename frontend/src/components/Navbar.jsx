@@ -33,10 +33,6 @@ export default function Navbar() {
       <header className="site-header">
         <div className="header-inner">
           
-          <div className="mobile-menu-toggle" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ display: 'none', cursor: 'pointer', color: 'var(--white)' }}>
-            <Menu size={24} />
-          </div>
-
           <Link to="/" className="site-logo">
             <div className="logo-img-wrap">
               <img src="/logo.jpeg" alt="The Electric Plug Logo" />
@@ -46,6 +42,10 @@ export default function Navbar() {
               <span className="logo-tagline" style={{ letterSpacing: '0.5px' }}>GIVING QUALITY YOU TRUST</span>
             </div>
           </Link>
+
+          <div className="mobile-menu-toggle" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ display: 'none', cursor: 'pointer', color: 'var(--white)', marginLeft: 'auto' }}>
+            <Menu size={24} />
+          </div>
 
           <div className={`search-bar ${isSearchFocused ? 'focused' : ''}`} style={{ transition: 'all 0.3s ease', boxShadow: isSearchFocused ? '0 0 0 3px rgba(255, 94, 0, 0.4)' : 'none', border: isSearchFocused ? '1.5px solid var(--primary)' : '1.5px solid var(--dark-border)' }}>
             <div style={{ display: 'flex', alignItems: 'center', background: 'transparent', borderRight: '1px solid var(--dark-border)', padding: '0 14px', cursor: 'pointer', color: 'var(--gray-1)' }}>
@@ -125,6 +125,20 @@ export default function Navbar() {
           <button className="close-menu-btn" onClick={() => setIsMobileMenuOpen(false)}>×</button>
           <div className="mobile-menu-header">Menu</div>
           <div className="mobile-menu-links">
+            {/* User Actions for Mobile */}
+            <Link to={user ? "/profile" : "/login"} onClick={() => setIsMobileMenuOpen(false)}>
+              <User size={18} /> {user ? `Hello, ${user.name}` : 'Sign In / Account'}
+            </Link>
+            <Link to="/wishlist" onClick={() => setIsMobileMenuOpen(false)}>
+              <Heart size={18} /> Saved Items ({wishlist.length})
+            </Link>
+            <Link to="/cart" onClick={() => setIsMobileMenuOpen(false)} style={{ color: 'var(--primary)', fontWeight: 700 }}>
+              <ShoppingCart size={18} /> Cart — {formatCurrency(cartTotal)} ({cartCount})
+            </Link>
+            
+            <div style={{ height: '1px', background: 'var(--dark-border)', margin: '8px 0' }}></div>
+            
+            {/* Categories */}
             <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)}><Menu size={16} /> Shop All Departments</Link>
             <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)}><Smartphone size={16} /> Phones & Wearables</Link>
             <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)}><Laptop size={16} /> Computing</Link>
