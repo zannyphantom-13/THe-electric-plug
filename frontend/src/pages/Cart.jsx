@@ -32,7 +32,7 @@ export default function Cart() {
             </Link>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '24px', alignItems: 'flex-start' }}>
+          <div className="cart-grid">
             {/* Cart Items */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {items.map(item => (

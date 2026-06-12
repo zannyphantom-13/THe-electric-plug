@@ -51,7 +51,7 @@ export default function Checkout() {
             ))}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '24px' }}>
+          <div className="cart-grid">
             {/* Steps Content */}
             <div style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius-lg)', padding: '32px' }}>
               {step === 0 && (

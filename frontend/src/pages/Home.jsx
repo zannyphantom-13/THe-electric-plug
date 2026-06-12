@@ -562,4 +562,4 @@ const getProductIcon = (category) => {
   return <Smartphone size={48} strokeWidth={1} color="var(--gray-2)" />;
 };
 
-export { ProductCard, formatCurrency, getProductIcon };
+export { getProductIcon };
