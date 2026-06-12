@@ -5,6 +5,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   // ---- Initialization ----
+  initThemeSwitcher();
   initCarousel();
   initFlashSaleTimer();
   populateProducts();
@@ -436,3 +437,45 @@ window.handleNewsletter = function(event) {
     showToast('Please enter a valid email.', 'error');
   }
 };
+
+// =============================================
+// THEME SWITCHER
+// =============================================
+function initThemeSwitcher() {
+  const selectors = document.querySelectorAll('.theme-selector');
+  const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+
+  const setTheme = (theme) => {
+    if (theme === 'auto') {
+      if (prefersDarkScheme.matches) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    } else {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+    localStorage.setItem('selected-theme', theme);
+    if (selectors) {
+      selectors.forEach(s => s.value = theme);
+    }
+  };
+
+  const currentTheme = localStorage.getItem('selected-theme') || 'light';
+  setTheme(currentTheme);
+
+  if (selectors) {
+    selectors.forEach(selector => {
+      selector.addEventListener('change', (e) => {
+        setTheme(e.target.value);
+      });
+    });
+  }
+
+  prefersDarkScheme.addEventListener('change', (e) => {
+    if (localStorage.getItem('selected-theme') === 'auto') {
+      setTheme('auto');
+    }
+  });
+}
+
