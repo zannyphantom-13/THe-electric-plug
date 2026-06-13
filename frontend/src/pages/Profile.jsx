@@ -18,7 +18,7 @@ const STATUS_COLORS = {
 };
 
 export default function Profile() {
-  const { user, logout, wishlist, showToast } = useApp();
+  const { user, authLoading, logout, wishlist, showToast } = useApp();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('orders');
   const [profileImage, setProfileImage] = useState(user?.avatar || null);
@@ -72,10 +72,10 @@ export default function Profile() {
     fetchOrders();
   }, [user]);
 
-  // If not logged in, redirect to login
+  // If not logged in and done loading auth, redirect to login
   useEffect(() => {
-    if (!user) navigate('/login');
-  }, [user, navigate]);
+    if (!authLoading && !user) navigate('/login');
+  }, [user, authLoading, navigate]);
 
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -134,6 +134,14 @@ export default function Profile() {
   const displayName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'My Account' : 'My Account';
   const initials = user?.firstName ? user.firstName[0].toUpperCase() : 'U';
 
+  if (authLoading) {
+    return (
+      <main className="main-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <Loader2 className="spinner" size={48} color="var(--primary)" />
+      </main>
+    );
+  }
+
   if (!user) return null;
 
   return (
@@ -185,7 +193,7 @@ export default function Profile() {
               )}
               <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '16px' }}>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>{mockOrders.length}</div>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>{orders.length}</div>
                   <div style={{ fontSize: '11px', color: 'var(--gray-1)' }}>Orders</div>
                 </div>
                 <div style={{ width: '1px', background: 'var(--dark-border)' }}></div>
@@ -248,7 +256,7 @@ export default function Profile() {
                         <div style={{ flex: '1 1 200px', minWidth: 0 }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '6px' }}>
                             <h3 style={{ fontSize: '15px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{itemName}{itemCount > 1 ? ` +${itemCount - 1} more` : ''}</h3>
-                            <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-display)', flexShrink: 0 }}>{formatCurrency(order.totalAmount)}</span>
+                            <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-display)', flexShrink: 0 }}>{formatCurrency(order.total || order.totalAmount)}</span>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                             <span style={{ fontSize: '12px', color: 'var(--gray-1)' }}>#{shortId} · {date}</span>

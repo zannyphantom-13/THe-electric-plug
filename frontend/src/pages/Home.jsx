@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
-export const formatCurrency = (amount) => '₦' + amount.toLocaleString('en-NG');
+export const formatCurrency = (amount) => '₦' + (amount || 0).toLocaleString('en-NG');
 
 export const ProductCard = ({ product }) => {
   const { addToCart, toggleWishlist, isInWishlist } = useApp();

@@ -62,7 +62,9 @@ export default function Footer() {
               <span className="footer-contact-icon" style={{ color: 'var(--primary)' }}><PhoneCall size={20} /></span>
               <div className="footer-contact-text">
                 <strong>Customer Service</strong>
-                0800-ELECTRIC<br />Mon – Sat: 8am – 8pm
+                07066514355<br />
+                09116763595<br />
+                Mon – Sat: 8am – 8pm
               </div>
             </div>
             <div className="footer-contact-item">
@@ -76,14 +78,14 @@ export default function Footer() {
               <span className="footer-contact-icon" style={{ color: 'var(--primary)' }}><MapPin size={20} /></span>
               <div className="footer-contact-text">
                 <strong>Head Office</strong>
-                14 Adeola Odeku St, Victoria Island,<br />Lagos, Nigeria
+                Shop 3, Aboderin Shopping complex,<br />beside California Luxury Hotel and Suites,<br />Agbaje-Orita Challenge, Ibadan.
               </div>
             </div>
             <div className="footer-contact-item">
               <span className="footer-contact-icon" style={{ color: 'var(--primary)' }}><MessageSquare size={20} /></span>
               <div className="footer-contact-text">
                 <strong>WhatsApp</strong>
-                +234 800 000 0000
+                07066514355
               </div>
             </div>
           </div>
