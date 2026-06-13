@@ -1,22 +1,57 @@
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { allProducts } from '../data/productData';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { getProduct } from '../utils/productService';
 import { getProductIcon, formatCurrency } from './Home';
 import { 
   ShoppingCart, Heart, Truck, ShieldCheck, 
-  BatteryCharging, MicOff, Package, Speaker, Cable
+  BatteryCharging, MicOff, Package, Speaker, Cable, Loader2
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export default function ProductDetails() {
   const { addToCart, toggleWishlist, isInWishlist } = useApp();
   const { id } = useParams();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const [qty, setQty] = useState(1);
   const [activeThumb, setActiveThumb] = useState(0);
   
-  const product = allProducts.find(p => p.id === id) || allProducts[0];
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      setLoading(true);
+      try {
+        const dbProduct = await getProduct(id);
+        if (dbProduct) {
+          setProduct(dbProduct);
+        } else {
+          // No product found
+          navigate('/shop');
+        }
+      } catch (error) {
+        console.error(error);
+        navigate('/shop');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [id, navigate]);
   
+  const inWishlist = product ? isInWishlist(product.id) : false;
+
+  if (loading) {
+    return (
+      <main className="main-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <Loader2 className="spinner" size={48} color="var(--primary)" />
+      </main>
+    );
+  }
+
+  if (!product) return null;
+
   // Provide a generic set of fallback icons if we can't map properly
   const thumbnails = [
     getProductIcon(product.category), 

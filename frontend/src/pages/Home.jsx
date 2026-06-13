@@ -251,7 +251,8 @@ export default function Home() {
             flashSale: dbProducts.slice(0, 8),
             bestSellers: dbProducts.slice(0, 6),
             newArrivals: dbProducts.slice(0, 10),
-            recommended: dbProducts.slice(0, 10)
+            recommended: dbProducts.slice(0, 10),
+            featured: dbProducts.slice(0, 8)
           });
         }
       } catch (err) {
@@ -419,7 +420,7 @@ export default function Home() {
         </div>
 
         <div className="flash-products">
-          {productData.flashSale.map(product => (
+          {data.flashSale.map(product => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
@@ -494,7 +495,7 @@ export default function Home() {
           <h2 className="section-title">Featured <span className="title-accent">Products</span></h2>
           <Link to="/shop" className="see-all">See All ›</Link>
         </div>
-        <ScrollableProductSlider products={productData.featured} />
+        <ScrollableProductSlider products={data.featured} />
       </section>
 
       {/* ---- NEW ARRIVALS (2-ROW SCROLLABLE) ---- */}
@@ -503,7 +504,7 @@ export default function Home() {
           <h2 className="section-title">New <span className="title-accent">Arrivals</span></h2>
           <Link to="/shop" className="see-all">See All ›</Link>
         </div>
-        <ScrollableProductSlider products={productData.newArrivals} />
+        <ScrollableProductSlider products={data.newArrivals} />
       </section>
 
       {/* ---- TOP DEALS (2-ROW SCROLLABLE) ---- */}
@@ -512,7 +513,7 @@ export default function Home() {
           <h2 className="section-title">Top <span className="title-accent">Deals</span></h2>
           <Link to="/shop" className="see-all">See All ›</Link>
         </div>
-        <ScrollableProductSlider products={[...productData.featured, ...productData.newArrivals].filter(p => p.oldPrice || p.badge === 'sale')} />
+        <ScrollableProductSlider products={[...data.featured, ...data.newArrivals].filter(p => p.oldPrice || p.badge === 'sale')} />
       </section>
 
       {/* ---- DYNAMIC PROMO SECTIONS ---- */}
