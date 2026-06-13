@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getProduct } from '../utils/productService';
 import { getProductIcon, formatCurrency } from './Home';
+import { categorySpecs } from '../data/taxonomy';
 import { 
   ShoppingCart, Heart, Truck, ShieldCheck, 
   BatteryCharging, MicOff, Package, Speaker, Cable, Loader2
@@ -15,6 +16,7 @@ export default function ProductDetails() {
   const [activeTab, setActiveTab] = useState(0);
   const [qty, setQty] = useState(1);
   const [activeThumb, setActiveThumb] = useState(0);
+  const [selectedColor, setSelectedColor] = useState('');
   
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -26,6 +28,10 @@ export default function ProductDetails() {
         const dbProduct = await getProduct(id);
         if (dbProduct) {
           setProduct(dbProduct);
+          if (dbProduct.colors && dbProduct.colors.length > 0) {
+            const firstCol = dbProduct.colors[0];
+            setSelectedColor(typeof firstCol === 'string' ? firstCol : firstCol.name);
+          }
         } else {
           // No product found
           navigate('/shop');
@@ -52,12 +58,22 @@ export default function ProductDetails() {
 
   if (!product) return null;
 
+  // Normalize colors
+  const normalizedColors = product?.colors?.map(c => typeof c === 'string' ? { name: c, image: null } : c) || [];
+
   // Extract images from product
-  const productImages = (product.images && product.images.length > 0) 
-    ? product.images 
+  let productImages = (product.images && product.images.length > 0) 
+    ? [...product.images] 
     : (product.image || product.imgUrl || product.img) 
       ? [product.image || product.imgUrl || product.img] 
       : [];
+
+  // Add unique color images to the gallery
+  normalizedColors.forEach(col => {
+    if (col.image && !productImages.includes(col.image)) {
+      productImages.push(col.image);
+    }
+  });
 
   const hasImages = productImages.length > 0;
 
@@ -73,7 +89,10 @@ export default function ProductDetails() {
     <main className="main-content" id="main">
       <div className="text-primary" style={{ fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
         <Link to="/" style={{ color: 'var(--gray-1)' }}>Home</Link> / 
-        <Link to="/shop" style={{ color: 'var(--gray-1)' }}> {product.category || 'Shop'} </Link> / 
+        <Link to="/shop" style={{ color: 'var(--gray-1)' }}> Shop </Link> / 
+        {product.department && <><span style={{ color: 'var(--gray-1)' }}> {product.department} </span> / </>}
+        {product.category && <><span style={{ color: 'var(--gray-1)' }}> {product.category} </span> / </>}
+        {product.subcategory && <><span style={{ color: 'var(--gray-1)' }}> {product.subcategory} </span> / </>}
         {product.name}
       </div>
 
@@ -150,14 +169,28 @@ export default function ProductDetails() {
             </div>
           </div>
 
-          <div className="pd-variants">
-            <div className="variant-title">Color: <span style={{ color: 'var(--white)' }}>Midnight Black</span></div>
-            <div className="variant-options">
-              <button className="variant-btn active">Midnight Black</button>
-              <button className="variant-btn">Platinum Silver</button>
-              <button className="variant-btn">Midnight Blue</button>
+          {normalizedColors.length > 0 && (
+            <div className="pd-variants">
+              <div className="variant-title">Color: <span style={{ color: 'var(--white)' }}>{selectedColor}</span></div>
+              <div className="variant-options">
+                {normalizedColors.map(col => (
+                  <button 
+                    key={col.name} 
+                    className={`variant-btn ${selectedColor === col.name ? 'active' : ''}`}
+                    onClick={() => {
+                      setSelectedColor(col.name);
+                      if (col.image) {
+                        const idx = productImages.indexOf(col.image);
+                        if (idx !== -1) setActiveThumb(idx);
+                      }
+                    }}
+                  >
+                    {col.name}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="pd-features">
             <div className="pd-feature">
@@ -205,8 +238,9 @@ export default function ProductDetails() {
 
           <div>
             <button className="pas-add-btn" onClick={() => {
-              addToCart(product, qty);
-              alert(`${qty}x ${product.name} added to cart!`);
+              const productToAdd = selectedColor ? { ...product, selectedColor } : product;
+              addToCart(productToAdd, qty);
+              alert(`${qty}x ${product.name} ${selectedColor ? `(${selectedColor})` : ''} added to cart!`);
             }}>
               <ShoppingCart size={20} /> Add to Cart
             </button>
@@ -232,26 +266,69 @@ export default function ProductDetails() {
         
         {activeTab === 0 && (
           <div className="tab-content active">
-            <h3>Premium Experience with {product.brand}</h3>
-            <p>Experience unparalleled quality and performance with the latest {product.name}. Designed to seamlessly integrate into your lifestyle, this product sets a new standard for excellence.</p>
-            <p>Every detail has been meticulously crafted to provide you with the best experience possible. From the premium materials to the advanced internal components, this is technology at its finest.</p>
+            {product.overview ? (
+              <>
+                <h3>About the {product.name}</h3>
+                <p style={{ lineHeight: '1.8', color: 'var(--gray-1)' }}>{product.overview}</p>
+              </>
+            ) : (
+              <>
+                <h3>Premium Experience with {product.brand}</h3>
+                <p>Experience unparalleled quality and performance with the latest {product.name}. Designed to seamlessly integrate into your lifestyle, this product sets a new standard for excellence.</p>
+                <p>Every detail has been meticulously crafted to provide you with the best experience possible. From the premium materials to the advanced internal components, this is technology at its finest.</p>
+              </>
+            )}
+            {product.description && (
+              <div style={{ marginTop: '16px', padding: '16px 20px', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid var(--primary)' }}>
+                <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.8', color: 'var(--gray-1)', whiteSpace: 'pre-line' }}>{product.description}</p>
+              </div>
+            )}
           </div>
         )}
 
-        {activeTab === 1 && (
-          <div className="tab-content active">
-            <h3>Technical Specifications</h3>
-            <table className="specs-table">
-              <tbody>
-                <tr><th>Brand</th><td>{product.brand}</td></tr>
-                <tr><th>Category</th><td>{product.category || 'Electronics'}</td></tr>
-                <tr><th>Model Year</th><td>2026</td></tr>
-                <tr><th>Warranty</th><td>1 Year Limited Warranty</td></tr>
-                <tr><th>Weight</th><td>Approx. 1.2kg</td></tr>
-              </tbody>
-            </table>
-          </div>
-        )}
+        {activeTab === 1 && (() => {
+          const specKey = product.subcategory || product.category;
+          const specFields = categorySpecs[specKey] || categorySpecs[product.category] || [];
+          const hasSpecs = product.specs && Object.keys(product.specs).some(k => product.specs[k]);
+          return (
+            <div className="tab-content active">
+              <h3>Technical Specifications</h3>
+              <table className="specs-table">
+                <tbody>
+                  {/* Always-visible core fields */}
+                  {product.brand && <tr><th>Brand</th><td>{product.brand}</td></tr>}
+                  {product.department && <tr><th>Department</th><td>{product.department}</td></tr>}
+                  {product.category && <tr><th>Category</th><td>{product.category}</td></tr>}
+                  {product.subcategory && <tr><th>Subcategory</th><td>{product.subcategory}</td></tr>}
+
+                  {/* Dynamic specs from taxonomy schema */}
+                  {specFields.length > 0 && hasSpecs ? (
+                    specFields.map(field => {
+                      const val = product.specs?.[field.id];
+                      if (!val) return null;
+                      return <tr key={field.id}><th>{field.label}</th><td>{val}</td></tr>;
+                    })
+                  ) : !hasSpecs ? (
+                    // Fallback static rows if no specs saved
+                    <>
+                      <tr><th>Model Year</th><td>2025</td></tr>
+                      <tr><th>Warranty</th><td>1 Year Limited Warranty</td></tr>
+                      <tr><th>Condition</th><td>Brand New</td></tr>
+                    </>
+                  ) : null}
+
+                  {/* Any extra specs not in schema */}
+                  {product.specs && Object.entries(product.specs)
+                    .filter(([k, v]) => v && !specFields.find(f => f.id === k))
+                    .map(([k, v]) => (
+                      <tr key={k}><th style={{ textTransform: 'capitalize' }}>{k.replace(/([A-Z])/g, ' $1').trim()}</th><td>{v}</td></tr>
+                    ))
+                  }
+                </tbody>
+              </table>
+            </div>
+          );
+        })()}
 
         {activeTab === 2 && (
           <div className="tab-content active">

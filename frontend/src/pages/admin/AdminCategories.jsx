@@ -1,14 +1,70 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, ChevronUp, ChevronDown, GripVertical, Tag, Loader2 } from 'lucide-react';
+import { Plus, Trash2, ChevronRight, Tag, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { categoryTaxonomy } from '../../data/taxonomy';
 import {
-  listenToCategories, addCategory, updateCategory, deleteCategory, DEFAULT_CATEGORIES
+  listenToCategories, addCategory, deleteCategory, updateCategory, DEFAULT_CATEGORIES
 } from '../../utils/catalogService';
 
+// Build initial tree from static taxonomy + any DB additions
+function buildTree(dbCats) {
+  // Start from hardcoded taxonomy
+  const tree = {};
+  Object.entries(categoryTaxonomy).forEach(([dept, cats]) => {
+    tree[dept] = {};
+    Object.entries(cats).forEach(([cat, subs]) => {
+      tree[dept][cat] = [...subs];
+    });
+  });
+
+  // Merge DB custom entries
+  dbCats.forEach(c => {
+    if (!c.department) return; // legacy flat category
+    if (!tree[c.department]) tree[c.department] = {};
+    if (c.type === 'department') return; // dept already created
+    if (c.type === 'category' || (!c.subcategory && c.category)) {
+      if (!tree[c.department][c.category]) tree[c.department][c.category] = [];
+    }
+    if (c.type === 'subcategory' || c.subcategory) {
+      if (!tree[c.department]) tree[c.department] = {};
+      if (!tree[c.department][c.category]) tree[c.department][c.category] = [];
+      if (!tree[c.department][c.category].includes(c.subcategory)) {
+        tree[c.department][c.category].push(c.subcategory);
+      }
+    }
+  });
+  return tree;
+}
+
+const iStyles = {
+  input: {
+    flex: 1, background: 'var(--dark)', border: '1.5px solid var(--dark-border)',
+    color: 'var(--white)', padding: '10px 14px', borderRadius: 'var(--radius-sm)',
+    fontSize: '13px', outline: 'none'
+  },
+  btn: (disabled) => ({
+    display: 'flex', alignItems: 'center', gap: '6px',
+    background: disabled ? 'var(--dark-border)' : 'var(--primary)',
+    color: disabled ? 'var(--gray-2)' : 'var(--black)',
+    padding: '10px 16px', borderRadius: 'var(--radius-sm)', fontWeight: 800,
+    fontSize: '13px', border: 'none', cursor: disabled ? 'not-allowed' : 'pointer',
+    whiteSpace: 'nowrap', transition: 'var(--transition)'
+  })
+};
+
 export default function AdminCategories() {
-  const [categories, setCategories] = useState([]);
-  const [newName, setNewName] = useState('');
+  const [dbCats, setDbCats] = useState([]);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ show: false, msg: '', type: 'success' });
+
+  // Add form state
+  const [newDept, setNewDept] = useState('');
+  const [newCat, setNewCat] = useState('');
+  const [newSub, setNewSub] = useState('');
+  const [selDept, setSelDept] = useState('');
+  const [selCat, setSelCat] = useState('');
+
+  // Expand state for UI tree
+  const [expanded, setExpanded] = useState({});
 
   const showToast = (msg, type = 'success') => {
     setToast({ show: true, msg, type });
@@ -16,64 +72,86 @@ export default function AdminCategories() {
   };
 
   useEffect(() => {
-    const unsub = listenToCategories(cats => {
-      if (cats.length === 0) {
-        setCategories(DEFAULT_CATEGORIES);
-      } else {
-        const fetchedNames = cats.map(c => c.name.toLowerCase());
-        const defaults = DEFAULT_CATEGORIES.filter(c => !fetchedNames.includes(c.name.toLowerCase()));
-        setCategories([...defaults, ...cats].sort((a, b) => (a.order ?? 99) - (b.order ?? 99)));
-      }
-    });
+    const unsub = listenToCategories(cats => setDbCats(cats));
     return () => unsub();
   }, []);
 
-  const handleAdd = async () => {
-    const name = newName.trim();
-    if (!name) return showToast('Category name cannot be empty.', 'error');
-    if (categories.some(c => c.name.toLowerCase() === name.toLowerCase())) return showToast('Category already exists.', 'error');
+  const tree = buildTree(dbCats);
+  const allDepts = Object.keys(tree);
+  const catsForDept = selDept ? Object.keys(tree[selDept] || {}) : [];
+
+  const handleAddDept = async () => {
+    const name = newDept.trim();
+    if (!name) return showToast('Department name is required', 'error');
+    if (tree[name]) return showToast('Department already exists', 'error');
     setLoading(true);
     try {
-      await addCategory({ name, order: categories.length });
-      setNewName('');
-      showToast(`"${name}" added!`);
-    } catch { showToast('Failed to add category.', 'error'); }
+      await addCategory({ type: 'department', department: name, name, order: 99 });
+      setNewDept('');
+      showToast(`Department "${name}" added!`);
+    } catch { showToast('Failed to add department', 'error'); }
     finally { setLoading(false); }
   };
 
-  const handleDelete = async (id, name) => {
-    if (!id) return showToast('Cannot delete a default category (not yet saved to DB). Add it first by editing order.', 'error');
-    if (!window.confirm(`Delete "${name}"? Products in this category won't be deleted but will lose their category tag.`)) return;
+  const handleAddCategory = async () => {
+    const dept = selDept.trim();
+    const name = newCat.trim();
+    if (!dept) return showToast('Select a department first', 'error');
+    if (!name) return showToast('Category name is required', 'error');
+    if (tree[dept]?.[name] !== undefined) return showToast('Category already exists', 'error');
     setLoading(true);
     try {
-      await deleteCategory(id);
-      showToast(`"${name}" deleted.`);
-    } catch { showToast('Failed to delete.', 'error'); }
+      await addCategory({ type: 'category', department: dept, category: name, name, order: 99 });
+      setNewCat('');
+      showToast(`Category "${name}" added under ${dept}!`);
+    } catch { showToast('Failed to add category', 'error'); }
     finally { setLoading(false); }
   };
 
-  const handleMove = async (index, dir) => {
-    const targetIndex = dir === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= categories.length) return;
-    const newArr = [...categories];
-    [newArr[index], newArr[targetIndex]] = [newArr[targetIndex], newArr[index]];
+  const handleAddSubcategory = async () => {
+    const dept = selDept.trim();
+    const cat = selCat.trim();
+    const name = newSub.trim();
+    if (!dept) return showToast('Select a department first', 'error');
+    if (!cat) return showToast('Select a category first', 'error');
+    if (!name) return showToast('Subcategory name is required', 'error');
+    if (tree[dept]?.[cat]?.includes(name)) return showToast('Subcategory already exists', 'error');
     setLoading(true);
     try {
-      for (let i = 0; i < newArr.length; i++) {
-        if (newArr[i].id) await updateCategory(newArr[i].id, { order: i });
-      }
-      showToast('Order updated!');
-    } catch { showToast('Failed to update order.', 'error'); }
+      await addCategory({ type: 'subcategory', department: dept, category: cat, subcategory: name, name, order: 99 });
+      setNewSub('');
+      showToast(`Subcategory "${name}" added!`);
+    } catch { showToast('Failed to add subcategory', 'error'); }
     finally { setLoading(false); }
   };
 
-  const inputStyle = { flex: 1, background: 'var(--dark)', border: '1.5px solid var(--dark-border)', color: 'var(--white)', padding: '11px 16px', borderRadius: 'var(--radius-sm)', fontSize: '14px', outline: 'none' };
+  const handleDelete = async (dbId, label) => {
+    if (!dbId) return showToast('Cannot delete built-in taxonomy items (hardcoded). Add a custom item to override.', 'error');
+    if (!window.confirm(`Delete "${label}"?`)) return;
+    setLoading(true);
+    try {
+      await deleteCategory(dbId);
+      showToast(`"${label}" deleted.`);
+    } catch { showToast('Failed to delete', 'error'); }
+    finally { setLoading(false); }
+  };
+
+  // Get DB record for a specific item
+  const getDbRecord = (dept, cat, sub) => dbCats.find(c => {
+    if (sub) return c.type === 'subcategory' && c.department === dept && c.category === cat && c.subcategory === sub;
+    if (cat) return c.type === 'category' && c.department === dept && c.category === cat;
+    return c.type === 'department' && c.department === dept;
+  });
+
+  const toggle = key => setExpanded(e => ({ ...e, [key]: !e[key] }));
+
+  const labelStyle = { fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--primary)', display: 'block', marginBottom: '8px' };
 
   return (
     <div>
       {/* Toast */}
       {toast.show && (
-        <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 9999, background: toast.type === 'success' ? 'rgba(0,230,118,0.15)' : 'rgba(255,61,0,0.15)', border: `1px solid ${toast.type === 'success' ? 'var(--success)' : 'var(--danger)'}`, color: toast.type === 'success' ? 'var(--success)' : '#ff8066', padding: '12px 20px', borderRadius: 'var(--radius-sm)', fontWeight: 700, fontSize: '14px', backdropFilter: 'blur(8px)', boxShadow: '0 8px 24px rgba(0,0,0,0.3)', animation: 'fadeIn 0.2s ease' }}>
+        <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 9999, background: toast.type === 'success' ? 'rgba(0,230,118,0.15)' : 'rgba(255,61,0,0.15)', border: `1px solid ${toast.type === 'success' ? 'var(--success)' : 'var(--danger)'}`, color: toast.type === 'success' ? 'var(--success)' : '#ff8066', padding: '12px 20px', borderRadius: 'var(--radius-sm)', fontWeight: 700, fontSize: '14px', backdropFilter: 'blur(8px)', boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
           {toast.msg}
         </div>
       )}
@@ -82,86 +160,150 @@ export default function AdminCategories() {
         <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '26px', fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Tag size={24} color="var(--primary)" /> Manage Categories
         </h1>
-        <p style={{ color: 'var(--gray-1)', fontSize: '13px', marginTop: '4px' }}>Categories appear in Shop filters and the product form. Use arrows to reorder.</p>
+        <p style={{ color: 'var(--gray-1)', fontSize: '13px', marginTop: '4px' }}>Build your full Department → Category → Subcategory taxonomy. These appear in the Shop sidebar and Add Product form.</p>
       </div>
 
-      {/* Add Form */}
-      <div style={{ background: 'rgba(255,94,0,0.05)', border: '1px solid rgba(255,94,0,0.2)', borderRadius: 'var(--radius-md)', padding: '20px', marginBottom: '24px' }}>
-        <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>Add New Category</label>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <input
-            value={newName}
-            onChange={e => setNewName(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleAdd()}
-            placeholder="e.g. Smart Home, Drones…"
-            disabled={loading}
-            style={inputStyle}
-            onFocus={e => e.target.style.borderColor = 'var(--primary)'}
-            onBlur={e => e.target.style.borderColor = 'var(--dark-border)'}
-          />
-          <button
-            onClick={handleAdd}
-            disabled={loading || !newName.trim()}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--primary)', color: 'var(--black)', padding: '11px 20px', borderRadius: 'var(--radius-sm)', fontWeight: 800, fontSize: '14px', border: 'none', cursor: loading || !newName.trim() ? 'not-allowed' : 'pointer', opacity: loading || !newName.trim() ? 0.6 : 1, whiteSpace: 'nowrap', transition: 'var(--transition)' }}
-          >
-            {loading ? <Loader2 className="spinner" size={16} /> : <Plus size={16} />} Add
-          </button>
+      {/* ── ADD FORMS ─────────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px', marginBottom: '28px' }}>
+
+        {/* Add Department */}
+        <div style={{ background: 'rgba(255,94,0,0.05)', border: '1px solid rgba(255,94,0,0.2)', borderRadius: 'var(--radius-md)', padding: '18px' }}>
+          <label style={labelStyle}>➕ Add Department</label>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <input value={newDept} onChange={e => setNewDept(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddDept()}
+              placeholder="e.g. Smart Home" disabled={loading} style={iStyles.input}
+              onFocus={e => e.target.style.borderColor = 'var(--primary)'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'} />
+            <button onClick={handleAddDept} disabled={loading || !newDept.trim()} style={iStyles.btn(loading || !newDept.trim())}>
+              {loading ? <Loader2 className="spinner" size={14} /> : <Plus size={14} />} Add
+            </button>
+          </div>
+        </div>
+
+        {/* Add Category */}
+        <div style={{ background: 'rgba(124,58,237,0.05)', border: '1px solid rgba(124,58,237,0.2)', borderRadius: 'var(--radius-md)', padding: '18px' }}>
+          <label style={{ ...labelStyle, color: '#7c3aed' }}>➕ Add Category</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <select value={selDept} onChange={e => { setSelDept(e.target.value); setSelCat(''); }}
+              style={{ ...iStyles.input, flex: 'unset' }}
+              onFocus={e => e.target.style.borderColor = '#7c3aed'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'}>
+              <option value="">— Select Department —</option>
+              {allDepts.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input value={newCat} onChange={e => setNewCat(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddCategory()}
+                placeholder="e.g. Wearables" disabled={!selDept || loading} style={{ ...iStyles.input, opacity: !selDept ? 0.5 : 1 }}
+                onFocus={e => e.target.style.borderColor = '#7c3aed'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'} />
+              <button onClick={handleAddCategory} disabled={loading || !selDept || !newCat.trim()} style={iStyles.btn(loading || !selDept || !newCat.trim())}>
+                {loading ? <Loader2 className="spinner" size={14} /> : <Plus size={14} />} Add
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Add Subcategory */}
+        <div style={{ background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 'var(--radius-md)', padding: '18px' }}>
+          <label style={{ ...labelStyle, color: '#10b981' }}>➕ Add Subcategory</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <select value={selDept} onChange={e => { setSelDept(e.target.value); setSelCat(''); }}
+              style={{ ...iStyles.input, flex: 'unset' }}
+              onFocus={e => e.target.style.borderColor = '#10b981'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'}>
+              <option value="">— Select Department —</option>
+              {allDepts.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+            <select value={selCat} onChange={e => setSelCat(e.target.value)} disabled={!selDept}
+              style={{ ...iStyles.input, flex: 'unset', opacity: !selDept ? 0.5 : 1 }}
+              onFocus={e => e.target.style.borderColor = '#10b981'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'}>
+              <option value="">— Select Category —</option>
+              {catsForDept.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input value={newSub} onChange={e => setNewSub(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddSubcategory()}
+                placeholder="e.g. Bone Conduction" disabled={!selCat || loading} style={{ ...iStyles.input, opacity: !selCat ? 0.5 : 1 }}
+                onFocus={e => e.target.style.borderColor = '#10b981'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'} />
+              <button onClick={handleAddSubcategory} disabled={loading || !selCat || !newSub.trim()} style={iStyles.btn(loading || !selCat || !newSub.trim())}>
+                {loading ? <Loader2 className="spinner" size={14} /> : <Plus size={14} />} Add
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Category List */}
+      {/* ── TAXONOMY TREE DISPLAY ──────────────────────────── */}
       <div style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
         <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--dark-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--gray-1)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{categories.length} Active Categories</span>
+          <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--gray-1)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            {allDepts.length} Departments
+          </span>
+          <span style={{ fontSize: '11px', color: 'var(--gray-2)' }}>🔒 Built-in &nbsp;·&nbsp; ✏️ Custom (deletable)</span>
         </div>
 
-        {categories.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--gray-1)' }}>No categories yet. Add one above!</div>
-        ) : (
-          categories.map((cat, index) => (
-            <div
-              key={cat.id || cat.name}
-              style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 20px', borderBottom: index < categories.length - 1 ? '1px solid var(--dark-border)' : 'none', transition: 'var(--transition)' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,94,0,0.03)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-            >
-              <GripVertical size={16} color="var(--gray-2)" style={{ cursor: 'grab', flexShrink: 0 }} />
-
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '14px', fontWeight: 700 }}>{cat.name}</div>
-                {!cat.id && <div style={{ fontSize: '11px', color: 'var(--gray-2)', marginTop: '2px' }}>Default • not yet in DB</div>}
-                {cat.createdAt && (
-                  <div style={{ fontSize: '11px', color: 'var(--gray-2)', marginTop: '2px' }}>
-                    Added {new Date(cat.createdAt?.toDate?.() || cat.createdAt).toLocaleDateString('en-GB')}
-                  </div>
+        {allDepts.map((dept, di) => {
+          const deptRec = getDbRecord(dept, null, null);
+          const isExpanded = expanded[dept] !== false; // default open
+          return (
+            <div key={dept} style={{ borderBottom: di < allDepts.length - 1 ? '1px solid var(--dark-border)' : 'none' }}>
+              {/* Department Row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 20px', background: 'rgba(255,94,0,0.03)', cursor: 'pointer' }}
+                onClick={() => toggle(dept)}>
+                {isExpanded ? <ChevronDown size={15} color="var(--primary)" /> : <ChevronRight size={15} color="var(--primary)" />}
+                <span style={{ fontWeight: 800, fontSize: '14px', flex: 1 }}>{dept}</span>
+                {!deptRec && <span style={{ fontSize: '10px', color: 'var(--gray-2)', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '99px' }}>Built-in</span>}
+                {deptRec && (
+                  <button onClick={e => { e.stopPropagation(); handleDelete(deptRec.id, dept); }}
+                    style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(255,61,0,0.25)', background: 'rgba(255,61,0,0.06)', color: 'var(--danger)', cursor: 'pointer' }}>
+                    <Trash2 size={12} />
+                  </button>
                 )}
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <button onClick={() => handleMove(index, 'up')} disabled={index === 0 || loading}
-                  style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 'var(--radius-sm)', border: '1px solid var(--dark-border)', background: 'var(--dark)', color: 'var(--gray-1)', cursor: index === 0 ? 'not-allowed' : 'pointer', opacity: index === 0 ? 0.3 : 1, transition: 'var(--transition)' }}
-                  title="Move up">
-                  <ChevronUp size={15} />
-                </button>
-                <button onClick={() => handleMove(index, 'down')} disabled={index === categories.length - 1 || loading}
-                  style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 'var(--radius-sm)', border: '1px solid var(--dark-border)', background: 'var(--dark)', color: 'var(--gray-1)', cursor: index === categories.length - 1 ? 'not-allowed' : 'pointer', opacity: index === categories.length - 1 ? 0.3 : 1, transition: 'var(--transition)' }}
-                  title="Move down">
-                  <ChevronDown size={15} />
-                </button>
-                <button onClick={() => handleDelete(cat.id, cat.name)} disabled={loading}
-                  style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(255,61,0,0.25)', background: 'rgba(255,61,0,0.06)', color: 'var(--danger)', cursor: 'pointer', transition: 'var(--transition)', marginLeft: '4px' }}
-                  title="Delete category">
-                  <Trash2 size={14} />
-                </button>
-              </div>
+              {/* Categories */}
+              {isExpanded && Object.entries(tree[dept] || {}).map(([cat, subs]) => {
+                const catRec = getDbRecord(dept, cat, null);
+                const catKey = `${dept}::${cat}`;
+                const catExpanded = expanded[catKey] !== false;
+                return (
+                  <div key={cat} style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 20px 10px 40px', cursor: 'pointer' }}
+                      onClick={() => toggle(catKey)}>
+                      {catExpanded ? <ChevronDown size={13} color="#7c3aed" /> : <ChevronRight size={13} color="#7c3aed" />}
+                      <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--gray-1)', flex: 1 }}>{cat}</span>
+                      <span style={{ fontSize: '11px', color: 'var(--gray-2)' }}>{subs.length} sub</span>
+                      {!catRec && <span style={{ fontSize: '10px', color: 'var(--gray-2)', background: 'rgba(255,255,255,0.05)', padding: '2px 7px', borderRadius: '99px' }}>Built-in</span>}
+                      {catRec && (
+                        <button onClick={e => { e.stopPropagation(); handleDelete(catRec.id, cat); }}
+                          style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(255,61,0,0.25)', background: 'rgba(255,61,0,0.06)', color: 'var(--danger)', cursor: 'pointer' }}>
+                          <Trash2 size={11} />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Subcategories */}
+                    {catExpanded && subs.map(sub => {
+                      const subRec = getDbRecord(dept, cat, sub);
+                      return (
+                        <div key={sub} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 20px 7px 64px', borderTop: '1px solid rgba(255,255,255,0.03)' }}>
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', flexShrink: 0 }} />
+                          <span style={{ fontSize: '12px', color: 'var(--gray-2)', flex: 1 }}>{sub}</span>
+                          {!subRec && <span style={{ fontSize: '10px', color: 'var(--gray-2)', background: 'rgba(255,255,255,0.05)', padding: '2px 7px', borderRadius: '99px' }}>Built-in</span>}
+                          {subRec && (
+                            <button onClick={() => handleDelete(subRec.id, sub)}
+                              style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(255,61,0,0.25)', background: 'rgba(255,61,0,0.06)', color: 'var(--danger)', cursor: 'pointer' }}>
+                              <Trash2 size={10} />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
             </div>
-          ))
-        )}
+          );
+        })}
       </div>
 
-      {/* Info note */}
       <div style={{ marginTop: '16px', padding: '14px 18px', background: 'rgba(255,206,30,0.06)', border: '1px solid rgba(255,206,30,0.2)', borderRadius: 'var(--radius-sm)', fontSize: '13px', color: 'var(--warning)', fontWeight: 600 }}>
-        ⚡ Categories automatically appear in the Shop filter bar and the Add Product form dropdown. Use the arrows to set their display order.
+        ⚡ Built-in items come from the hardcoded taxonomy and can't be deleted here. Custom items you add above are deletable. All appear in the Shop sidebar and Add Product form.
       </div>
     </div>
   );

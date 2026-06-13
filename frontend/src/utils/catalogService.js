@@ -31,7 +31,11 @@ const categoriesRef = () => collection(db, 'categories');
 export function listenToCategories(callback) {
   const q = query(categoriesRef(), orderBy('order', 'asc'));
   return onSnapshot(q, snap => {
-    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    const fetched = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const fetchedNames = fetched.map(c => c.name.toLowerCase());
+    const defaults = DEFAULT_CATEGORIES.filter(c => !fetchedNames.includes(c.name.toLowerCase()));
+    const merged = [...defaults, ...fetched].sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
+    callback(merged);
   });
 }
 
@@ -53,7 +57,11 @@ const brandsRef = () => collection(db, 'brands');
 export function listenToBrands(callback) {
   const q = query(brandsRef(), orderBy('order', 'asc'));
   return onSnapshot(q, snap => {
-    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    const fetched = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const fetchedNames = fetched.map(b => b.name.toLowerCase());
+    const defaults = DEFAULT_BRANDS.filter(b => !fetchedNames.includes(b.name.toLowerCase()));
+    const merged = [...defaults, ...fetched].sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
+    callback(merged);
   });
 }
 

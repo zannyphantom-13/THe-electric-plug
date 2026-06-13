@@ -29,7 +29,7 @@ export default function Wishlist() {
             {wishlist.map(product => (
               <div key={product.id} className="product-card">
                 <div className="product-img-wrap">
-                  <img src={product.imgUrl} alt={product.name} />
+                  <img src={product.imgUrl || product.image || (product.images && product.images[0]) || '/placeholder.jpg'} alt={product.name} />
                   <button 
                     className="wishlist-btn" 
                     style={{ background: 'rgba(255, 94, 0, 0.1)', color: 'var(--primary)', borderColor: 'var(--primary)' }}

@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { listenToCategories, listenToBrands, DEFAULT_CATEGORIES, DEFAULT_BRANDS } from '../../utils/catalogService';
+import { listenToCategories, listenToBrands } from '../../utils/catalogService';
+import { categoryTaxonomy, categorySpecs } from '../../data/taxonomy';
 import {
-  ArrowLeft, Save, Image as ImageIcon, AlertCircle,
+  ArrowLeft, Save, Image as ImageIcon, AlertCircle, FileText, List,
   Tag, DollarSign, Star, Upload, X, CheckCircle2, Sparkles, Infinity, Loader2, Package
 } from 'lucide-react';
 import { uploadImage } from '../../utils/cloudinaryService';
@@ -37,11 +38,15 @@ export default function ProductForm() {
   const [dragOver, setDragOver] = useState(false);
 
   const [formData, setFormData] = useState({
-    name: '', category: 'Smartphones', brand: '', description: '',
+    name: '', department: 'Computing', category: 'Laptops', subcategory: '', brand: '', description: '',
+    overview: '', colors: [],
     price: '', originalPrice: '', badge: '', stock: 0,
     unlimited_stock: false, is_hidden: false, featured: false, featuredPosition: ''
   });
-  });
+  const [colorInput, setColorInput] = useState('');
+  const [customSpecKey, setCustomSpecKey] = useState('');
+  const [customSpecValue, setCustomSpecValue] = useState('');
+  const [specs, setSpecs] = useState({});
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [loading, setLoading] = useState(isEditing);
@@ -55,8 +60,8 @@ export default function ProductForm() {
 
   // Fetch catalogs
   useEffect(() => {
-    const unsubCats = listenToCategories(list => setCategories(list.length ? list : DEFAULT_CATEGORIES));
-    const unsubBrands = listenToBrands(list => setBrands(list.length ? list : DEFAULT_BRANDS));
+    const unsubCats = listenToCategories(setCategories);
+    const unsubBrands = listenToBrands(setBrands);
     return () => { unsubCats(); unsubBrands(); };
   }, []);
 
@@ -68,7 +73,10 @@ export default function ProductForm() {
         const docSnap = await getDoc(doc(db, 'products', id));
         if (docSnap.exists()) {
           const data = docSnap.data();
-          setFormData({ ...data, price: String(data.price || ''), originalPrice: String(data.originalPrice || ''), stock: String(data.stock || 0) });
+          const rawColors = data.colors || [];
+          const normalizedColors = rawColors.map(c => typeof c === 'string' ? { name: c, image: null, file: null } : c);
+          setFormData({ ...data, price: String(data.price || ''), originalPrice: String(data.originalPrice || ''), stock: String(data.stock || 0), colors: normalizedColors });
+          if (data.specs) setSpecs(data.specs);
           if (data.images && data.images.length > 0) {
             setImagePreviews(data.images);
           } else if (data.image || data.imgUrl || data.img) {
@@ -102,7 +110,17 @@ export default function ProductForm() {
 
   const handleChange = e => {
     const { name, value, type, checked } = e.target;
-    setFormData(p => ({ ...p, [name]: type === 'checkbox' ? checked : value }));
+    setFormData(p => {
+      const updated = { ...p, [name]: type === 'checkbox' ? checked : value };
+      if (name === 'department') {
+        updated.category = categoryTaxonomy[value] ? Object.keys(categoryTaxonomy[value])[0] || '' : '';
+        updated.subcategory = categoryTaxonomy[value]?.[updated.category]?.[0] || '';
+      }
+      if (name === 'category') {
+        updated.subcategory = categoryTaxonomy[p.department]?.[value]?.[0] || '';
+      }
+      return updated;
+    });
   };
 
   const processFiles = files => {
@@ -144,6 +162,52 @@ export default function ProductForm() {
     setShowFeaturedModal(false);
   };
 
+  const handleAddColor = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const c = colorInput.trim();
+      if (c && !(formData.colors || []).some(col => col.name === c)) {
+        setFormData(p => ({ ...p, colors: [...(p.colors || []), { name: c, image: null, file: null }] }));
+      }
+      setColorInput('');
+    }
+  };
+
+  const handleRemoveColor = (colName) => {
+    setFormData(p => ({ ...p, colors: (p.colors || []).filter(c => c.name !== colName) }));
+  };
+
+  const handleColorImageChange = (index, file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData(p => {
+        const newColors = [...p.colors];
+        newColors[index] = { ...newColors[index], image: reader.result, file: file };
+        return { ...p, colors: newColors };
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAddCustomSpec = () => {
+    const key = customSpecKey.trim();
+    const val = customSpecValue.trim();
+    if (key && val) {
+      setSpecs(p => ({ ...p, [key]: val }));
+      setCustomSpecKey('');
+      setCustomSpecValue('');
+    }
+  };
+
+  const handleRemoveCustomSpec = (key) => {
+    setSpecs(p => {
+      const newSpecs = { ...p };
+      delete newSpecs[key];
+      return newSpecs;
+    });
+  };
+
   const handleSubmit = async e => {
     e.preventDefault();
     setError('');
@@ -163,11 +227,27 @@ export default function ProductForm() {
 
       if (imageUrls.length === 0 && !isEditing) throw new Error('At least one product image is required.');
 
+      // Upload color images if any
+      const finalColors = [];
+      for (const col of formData.colors || []) {
+        if (col.file) {
+          const url = await uploadImage(col.file);
+          finalColors.push({ name: col.name, image: url || col.image });
+        } else {
+          finalColors.push({ name: col.name, image: col.image });
+        }
+      }
+
       const payload = {
         name: formData.name,
         brand: formData.brand || '',
+        department: formData.department,
         category: formData.category,
+        subcategory: formData.subcategory || null,
         description: formData.description || '',
+        overview: formData.overview || '',
+        colors: finalColors,
+        specs: specs,
         price: Number(formData.price),
         originalPrice: formData.originalPrice ? Number(formData.originalPrice) : null,
         badge: formData.badge || null,
@@ -200,7 +280,6 @@ export default function ProductForm() {
   };
 
   const hasDiscount = formData.originalPrice && formData.price && Number(formData.price) < Number(formData.originalPrice);
-  const discountPct = hasDiscount ? Math.round(100 - (Number(formData.price) / Number(formData.originalPrice)) * 100) : 0;
   const discountPct = hasDiscount ? Math.round(100 - (Number(formData.price) / Number(formData.originalPrice)) * 100) : 0;
   const stockOk = formData.unlimited_stock || Number(formData.stock || 0) > 0;
 
@@ -262,15 +341,53 @@ export default function ProductForm() {
               onFocus={e => e.target.style.borderColor = 'var(--primary)'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'} />
           </FieldGroup>
 
-          {/* Category / Brand / Badge */}
-          <div className="responsive-grid-3" style={{ gap: '16px' }}>
-            <FieldGroup label="Category" icon={<Tag size={14} />} accent="#7c3aed">
-              <select name="category" value={formData.category} onChange={handleChange} style={inputStyle}
-                onFocus={e => e.target.style.borderColor = '#7c3aed'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'}>
-                <option value="" disabled>Select category...</option>
-                {categories.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
-              </select>
-            </FieldGroup>
+          {/* ── SECTION: Classification ───────────────────────── */}
+          <div style={{ background: 'rgba(124,58,237,0.04)', border: '1px solid rgba(124,58,237,0.15)', borderRadius: 'var(--radius-md)', padding: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+              <Tag size={14} color="#7c3aed" />
+              <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#7c3aed' }}>Classification</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '14px', marginBottom: '12px' }}>
+              <FieldGroup label="Department" icon={<Tag size={12} />} accent="#7c3aed">
+                <select name="department" value={formData.department} onChange={handleChange} style={inputStyle}
+                  onFocus={e => e.target.style.borderColor = '#7c3aed'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'}>
+                  <option value="" disabled>Select department...</option>
+                  {Array.from(new Set([...Object.keys(categoryTaxonomy), ...categories.map(c => c.name)])).map(dept => (
+                    <option key={dept} value={dept}>{dept}</option>
+                  ))}
+                </select>
+              </FieldGroup>
+              <FieldGroup label="Category" icon={<Tag size={12} />} accent="#7c3aed">
+                <select name="category" value={formData.category} onChange={handleChange}
+                  disabled={!categoryTaxonomy[formData.department]}
+                  style={{ ...inputStyle, opacity: !categoryTaxonomy[formData.department] ? 0.5 : 1 }}
+                  onFocus={e => e.target.style.borderColor = '#7c3aed'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'}>
+                  <option value="">— No Category —</option>
+                  {categoryTaxonomy[formData.department] && Object.keys(categoryTaxonomy[formData.department]).map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </FieldGroup>
+              <FieldGroup label="Subcategory" icon={<Tag size={12} />} accent="#7c3aed">
+                <select name="subcategory" value={formData.subcategory} onChange={handleChange}
+                  disabled={!categoryTaxonomy[formData.department]?.[formData.category]}
+                  style={{ ...inputStyle, opacity: !categoryTaxonomy[formData.department]?.[formData.category] ? 0.5 : 1 }}
+                  onFocus={e => e.target.style.borderColor = '#7c3aed'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'}>
+                  <option value="">— No Subcategory —</option>
+                  {categoryTaxonomy[formData.department]?.[formData.category]?.map(sub => (
+                    <option key={sub} value={sub}>{sub}</option>
+                  ))}
+                </select>
+              </FieldGroup>
+            </div>
+            {/* Breadcrumb preview */}
+            <div style={{ fontSize: '11px', color: 'var(--gray-2)', background: 'rgba(0,0,0,0.25)', padding: '7px 12px', borderRadius: 'var(--radius-sm)', fontFamily: 'monospace' }}>
+              📂 {[formData.department, formData.category, formData.subcategory].filter(Boolean).join(' › ') || '…'}
+            </div>
+          </div>
+
+          {/* Brand / Badge */}
+          <div className="responsive-grid-2" style={{ gap: '16px' }}>
             <FieldGroup label="Brand" icon={<Tag size={14} />} accent="#10b981">
               <select name="brand" value={formData.brand} onChange={handleChange} style={inputStyle}
                 onFocus={e => e.target.style.borderColor = '#10b981'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'}>
@@ -286,11 +403,161 @@ export default function ProductForm() {
             </FieldGroup>
           </div>
 
-          {/* Description */}
-          <FieldGroup label="Description / Features" icon={<Sparkles size={14} />} accent="#8b5cf6">
-            <textarea name="description" value={formData.description} onChange={handleChange} rows={5} placeholder="Enter product features and specs…" style={{ ...inputStyle, resize: 'vertical' }}
-              onFocus={e => e.target.style.borderColor = '#8b5cf6'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'} />
+          {/* Colors */}
+          <FieldGroup label="Available Colors" icon={<Tag size={14} />} accent="#3b82f6" hint="Type a color and press Enter to add">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <input type="text" value={colorInput} onChange={e => setColorInput(e.target.value)} onKeyDown={handleAddColor} placeholder="e.g. Midnight Black, Rose Gold..." style={inputStyle}
+                onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'} />
+              {(formData.colors && formData.colors.length > 0) && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {formData.colors.map((col, idx) => (
+                    <div key={col.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', background: 'rgba(59,130,246,0.05)', border: '1px solid rgba(59,130,246,0.2)', padding: '8px 12px', borderRadius: 'var(--radius-sm)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--white)' }}>{col.name}</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 700, color: '#3b82f6', cursor: 'pointer', background: 'rgba(59,130,246,0.1)', padding: '4px 8px', borderRadius: '4px' }}>
+                          <ImageIcon size={12} /> {col.image ? 'Change Image' : 'Add Image'}
+                          <input type="file" accept="image/*" onChange={e => handleColorImageChange(idx, e.target.files[0])} style={{ display: 'none' }} />
+                        </label>
+                        {col.image && (
+                          <div style={{ width: '24px', height: '24px', borderRadius: '4px', overflow: 'hidden', border: '1px solid var(--dark-border)' }}>
+                            <img src={col.image} alt={col.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          </div>
+                        )}
+                        <button type="button" onClick={() => handleRemoveColor(col.name)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}>
+                          <X size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </FieldGroup>
+
+          {/* ── SECTION: Overview & Content ─────────────────────── */}
+          <div style={{ background: 'rgba(139,92,246,0.04)', border: '1px solid rgba(139,92,246,0.15)', borderRadius: 'var(--radius-md)', padding: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+              <FileText size={14} color="#8b5cf6" />
+              <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#8b5cf6' }}>Overview &amp; Content</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <FieldGroup label="Product Overview" icon={<FileText size={14} />} accent="#8b5cf6" hint="Short blurb shown on the Overview tab of the product page">
+                <textarea name="overview" value={formData.overview || ''} onChange={handleChange} rows={3}
+                  placeholder="e.g. Experience premium performance with the latest flagship — designed for speed, style and all-day battery life."
+                  style={{ ...inputStyle, resize: 'vertical' }}
+                  onFocus={e => e.target.style.borderColor = '#8b5cf6'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'} />
+              </FieldGroup>
+              <FieldGroup label="Features / Long Description" icon={<Sparkles size={14} />} accent="#8b5cf6" hint="Detailed feature list, bullet points, specs narrative">
+                <textarea name="description" value={formData.description} onChange={handleChange} rows={5}
+                  placeholder="Enter product features and specs…"
+                  style={{ ...inputStyle, resize: 'vertical' }}
+                  onFocus={e => e.target.style.borderColor = '#8b5cf6'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'} />
+              </FieldGroup>
+            </div>
+          </div>
+
+          {/* ── SECTION: Specifications ───────────────────────────── */}
+          {(() => {
+            const specKey = formData.subcategory || formData.category;
+            const specFields = categorySpecs[specKey] || categorySpecs[formData.category] || [];
+            return (
+              <div style={{ background: 'rgba(124,58,237,0.04)', border: '1px solid rgba(124,58,237,0.15)', borderRadius: 'var(--radius-md)', padding: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                  <List size={14} color="#7c3aed" />
+                  <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#7c3aed' }}>
+                    Specifications{specKey ? ` — ${specKey}` : ''}
+                  </span>
+                  {specFields.length > 0 && (
+                    <span style={{ fontSize: '11px', color: 'var(--gray-2)', marginLeft: 'auto', fontStyle: 'italic' }}>* required &nbsp;·&nbsp; (optional) can be skipped</span>
+                  )}
+                </div>
+                {specFields.length === 0 ? (
+                  <div style={{ padding: '24px', textAlign: 'center', background: 'rgba(0,0,0,0.2)', border: '1px dashed var(--dark-border)', borderRadius: 'var(--radius-sm)', color: 'var(--gray-2)', fontSize: '13px' }}>
+                    ℹ️ Select <strong style={{ color: 'var(--white)' }}>Department → Category → Subcategory</strong> above to reveal spec fields for this product type
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '14px' }}>
+                    {specFields.map(field => (
+                      <div key={field.id} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: field.optional ? 'var(--gray-1)' : '#7c3aed' }}>
+                          {field.label}{' '}
+                          {field.optional
+                            ? <span style={{ color: 'var(--gray-2)', fontWeight: 400, textTransform: 'none', letterSpacing: 0, fontSize: '10px' }}>(optional)</span>
+                            : <span style={{ color: 'var(--danger)' }}>*</span>
+                          }
+                        </label>
+                        {field.type === 'select' ? (
+                          /* Combo: pick from list OR type custom value */
+                          <>
+                            <input
+                              list={`dl-${field.id}`}
+                              value={specs[field.id] || ''}
+                              onChange={e => setSpecs(p => ({ ...p, [field.id]: e.target.value }))}
+                              placeholder={`Select or type custom…`}
+                              style={{ ...inputStyle, borderColor: specs[field.id] ? '#7c3aed' : 'var(--dark-border)' }}
+                              onFocus={e => e.target.style.borderColor = '#7c3aed'}
+                              onBlur={e => e.target.style.borderColor = specs[field.id] ? '#7c3aed' : 'var(--dark-border)'}
+                            />
+                            <datalist id={`dl-${field.id}`}>
+                              {field.options.map(opt => <option key={opt} value={opt} />)}
+                            </datalist>
+                          </>
+                        ) : (
+                          <input type={field.type === 'number' ? 'number' : 'text'}
+                            value={specs[field.id] || ''}
+                            onChange={e => setSpecs(p => ({ ...p, [field.id]: e.target.value }))}
+                            placeholder={field.placeholder || ''}
+                            style={{ ...inputStyle, borderColor: specs[field.id] ? '#7c3aed' : 'var(--dark-border)' }}
+                            onFocus={e => e.target.style.borderColor = '#7c3aed'}
+                            onBlur={e => e.target.style.borderColor = specs[field.id] ? '#7c3aed' : 'var(--dark-border)'} />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Custom Specs Section */}
+                <div style={{ marginTop: '24px', borderTop: '1px solid rgba(124,58,237,0.15)', paddingTop: '20px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#7c3aed', marginBottom: '12px' }}>
+                    Custom Specifications
+                  </div>
+                  
+                  {/* Display existing custom specs */}
+                  {Object.keys(specs).filter(k => !specFields.find(f => f.id === k)).length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                      {Object.keys(specs).filter(k => !specFields.find(f => f.id === k)).map(k => (
+                        <div key={k} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(0,0,0,0.2)', padding: '8px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--dark-border)' }}>
+                          <div style={{ flex: 1, display: 'flex', gap: '12px' }}>
+                            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--gray-1)', width: '120px' }}>{k}</span>
+                            <span style={{ fontSize: '13px', color: 'var(--white)' }}>{specs[k]}</span>
+                          </div>
+                          <button type="button" onClick={() => handleRemoveCustomSpec(k)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add new custom spec form */}
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                    <div style={{ flex: 1 }}>
+                      <input type="text" value={customSpecKey} onChange={e => setCustomSpecKey(e.target.value)} placeholder="Spec Name (e.g. Refresh Rate)" style={{ ...inputStyle, marginBottom: '8px' }} onFocus={e => e.target.style.borderColor = '#7c3aed'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'} />
+                    </div>
+                    <div style={{ flex: 2 }}>
+                      <input type="text" value={customSpecValue} onChange={e => setCustomSpecValue(e.target.value)} placeholder="Value (e.g. 120Hz)" style={inputStyle} onFocus={e => e.target.style.borderColor = '#7c3aed'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddCustomSpec())} />
+                    </div>
+                    <button type="button" onClick={handleAddCustomSpec} disabled={!customSpecKey.trim() || !customSpecValue.trim()} style={{ background: 'rgba(124,58,237,0.1)', color: '#7c3aed', border: '1px solid rgba(124,58,237,0.3)', height: '44px', padding: '0 16px', borderRadius: 'var(--radius-sm)', fontWeight: 700, cursor: (!customSpecKey.trim() || !customSpecValue.trim()) ? 'not-allowed' : 'pointer', opacity: (!customSpecKey.trim() || !customSpecValue.trim()) ? 0.5 : 1 }}>
+                      Add
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            );
+          })()}
 
           {/* Price / Original Price */}
           <div className="responsive-grid-2" style={{ gap: '16px' }}>

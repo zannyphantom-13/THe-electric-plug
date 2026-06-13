@@ -45,7 +45,7 @@ export const ProductCard = ({ product }) => {
           >
             <Heart size={16} fill={inWishlist ? "var(--primary)" : "none"} />
           </button>
-          <img src={product.imgUrl} alt={product.name} className="product-img" />
+          <img src={product.imgUrl || product.image || (product.images && product.images[0]) || '/placeholder.jpg'} alt={product.name} className="product-img" />
           <div className="product-actions">
             <button 
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'transparent', font: 'inherit', fontWeight: 700, width: '100%', height: '100%', cursor: 'pointer' }} 

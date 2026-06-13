@@ -17,13 +17,7 @@ export default function AdminBrands() {
 
   useEffect(() => {
     const unsub = listenToBrands(list => {
-      if (list.length === 0) {
-        setBrands(DEFAULT_BRANDS);
-      } else {
-        const fetchedNames = list.map(b => b.name.toLowerCase());
-        const defaults = DEFAULT_BRANDS.filter(b => !fetchedNames.includes(b.name.toLowerCase()));
-        setBrands([...defaults, ...list].sort((a, b) => (a.order ?? 99) - (b.order ?? 99)));
-      }
+      setBrands(list);
     });
     return () => unsub();
   }, []);

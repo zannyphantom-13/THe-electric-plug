@@ -2,31 +2,28 @@ import React, { useState, useEffect } from 'react';
 import { allProducts as staticProducts } from '../data/productData';
 import { getProducts } from '../utils/productService';
 import { ProductCard } from './Home';
-import { categoryTaxonomy, categoryAttributes, defaultAttributes } from '../data/taxonomy';
-import { Loader2 } from 'lucide-react';
+import { categoryTaxonomy, categorySpecs } from '../data/taxonomy';
+import { Loader2, SlidersHorizontal, X } from 'lucide-react';
 
 export default function Shop() {
   const [view, setView] = useState('grid');
-  const [activeCategory, setActiveCategory] = useState('Laptops'); // Default to Laptops to show dynamic filters
-  const [expandedDept, setExpandedDept] = useState('Computing');
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [expandedDept, setExpandedDept] = useState(null);
   const [selectedFilters, setSelectedFilters] = useState({});
+  const [priceMin, setPriceMin] = useState('');
+  const [priceMax, setPriceMax] = useState('');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState('recommended');
 
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const firestoreProducts = await getProducts();
-        // If firestore is empty, optionally fallback to static (useful for dev)
-        if (firestoreProducts.length === 0) {
-          setProducts(staticProducts);
-        } else {
-          setProducts(firestoreProducts);
-        }
-      } catch (error) {
-        console.error("Failed to load products", error);
+        const fp = await getProducts();
+        setProducts(fp.length === 0 ? staticProducts : fp);
+      } catch {
         setProducts(staticProducts);
       } finally {
         setLoading(false);
@@ -34,73 +31,136 @@ export default function Shop() {
     };
     fetchProducts();
   }, []);
-  
-  // Get attributes for the currently active category, fallback to default
-  const activeFilters = categoryAttributes[activeCategory] || defaultAttributes;
+
+  // Derive unique spec options from actual products in the active category
+  const categoryProducts = products.filter(p =>
+    !activeCategory ||
+    p.department === activeCategory ||
+    p.category === activeCategory ||
+    p.subcategory === activeCategory
+  );
+
+  // Build dynamic spec filters from actual product specs
+  const specKey = activeCategory;
+  const specSchema = categorySpecs[specKey] || [];
+  const dynamicSpecFilters = specSchema.map(field => {
+    const values = [...new Set(
+      categoryProducts.map(p => p.specs?.[field.id]).filter(Boolean)
+    )].sort();
+    return { ...field, liveOptions: values };
+  }).filter(f => f.liveOptions.length > 0);
+
+  // Unique brands from filtered category
+  const brandsInCategory = [...new Set(categoryProducts.map(p => p.brand).filter(Boolean))].sort();
 
   const handleFilterChange = (filterId, option) => {
     setSelectedFilters(prev => {
-      const currentSelections = prev[filterId] || [];
-      if (currentSelections.includes(option)) {
-        return { ...prev, [filterId]: currentSelections.filter(item => item !== option) };
-      } else {
-        return { ...prev, [filterId]: [...currentSelections, option] };
-      }
+      const cur = prev[filterId] || [];
+      return cur.includes(option)
+        ? { ...prev, [filterId]: cur.filter(i => i !== option) }
+        : { ...prev, [filterId]: [...cur, option] };
     });
   };
-  
+
+  const clearAllFilters = () => {
+    setSelectedFilters({});
+    setPriceMin('');
+    setPriceMax('');
+    setActiveCategory(null);
+  };
+
+  const activeFilterCount = Object.values(selectedFilters).flat().length;
+
+  const filteredProducts = products.filter(p => {
+    const matchCat = !activeCategory ||
+      p.department === activeCategory ||
+      p.category === activeCategory ||
+      p.subcategory === activeCategory;
+
+    const matchBrand = (!selectedFilters.brand?.length) || selectedFilters.brand.includes(p.brand);
+
+    // Match dynamic spec filters
+    const matchSpecs = specSchema.every(field => {
+      const sel = selectedFilters[field.id];
+      if (!sel?.length) return true;
+      return sel.includes(p.specs?.[field.id]);
+    });
+
+    const matchMin = !priceMin || p.price >= Number(priceMin);
+    const matchMax = !priceMax || p.price <= Number(priceMax);
+
+    return matchCat && matchBrand && matchSpecs && matchMin && matchMax;
+  }).sort((a, b) => {
+    if (sortBy === 'price_asc') return a.price - b.price;
+    if (sortBy === 'price_desc') return b.price - a.price;
+    if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
+    if (sortBy === 'newest') return new Date(b.createdAt?.toDate?.() || b.createdAt || 0) - new Date(a.createdAt?.toDate?.() || a.createdAt || 0);
+    return 0; // recommended
+  });
+
   return (
     <main className="main-content" id="main">
       <div className="section-header">
         <h1 className="section-title">Shop <span className="title-accent">Electronics</span></h1>
-        <div className="text-primary" style={{ fontSize: '13px', fontWeight: 600 }}>Home / Shop</div>
+        <div className="text-primary" style={{ fontSize: '13px', fontWeight: 600 }}>Home / Shop{activeCategory ? ` / ${activeCategory}` : ''}</div>
       </div>
 
       <div className="shop-layout">
-        {/* Mobile Filter Overlay Background */}
-        {isMobileFilterOpen && <div className="mobile-filter-backdrop" onClick={() => setIsMobileFilterOpen(false)}></div>}
+        {/* Mobile overlay */}
+        {isMobileFilterOpen && <div className="mobile-filter-backdrop" onClick={() => setIsMobileFilterOpen(false)} />}
 
         <aside className={`shop-sidebar ${isMobileFilterOpen ? 'open' : ''}`}>
           <div className="mobile-filter-header">
             <span>Filter Products</span>
             <button onClick={() => setIsMobileFilterOpen(false)}>×</button>
           </div>
-          {/* Category Tree Navigation */}
+
+          {/* Clear all */}
+          {(activeFilterCount > 0 || activeCategory) && (
+            <button onClick={clearAllFilters} style={{ width: '100%', marginBottom: '12px', padding: '8px', background: 'rgba(255,61,0,0.08)', border: '1px solid rgba(255,61,0,0.25)', borderRadius: 'var(--radius-sm)', color: 'var(--danger)', fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              <X size={13} /> Clear All Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
+            </button>
+          )}
+
+          {/* ── Category Tree ─────────────────────────────── */}
           <div className="filter-group">
             <div className="filter-title">Categories</div>
-            <div className="category-tree" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {Object.entries(categoryTaxonomy).map(([dept, categories]) => (
+
+            {/* All Products */}
+            <div onClick={() => { setActiveCategory(null); setSelectedFilters({}); }}
+              style={{ fontSize: '13px', fontWeight: 600, cursor: 'pointer', padding: '5px 0', color: !activeCategory ? 'var(--primary)' : 'var(--gray-1)' }}>
+              All Products
+            </div>
+
+            <div className="category-tree" style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
+              {Object.entries(categoryTaxonomy).map(([dept, cats]) => (
                 <div key={dept} className="tree-dept">
-                  <div 
-                    className="dept-header" 
-                    onClick={() => setExpandedDept(expandedDept === dept ? null : dept)}
-                    style={{ fontWeight: 700, fontSize: '14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--dark-border)' }}
+                  <div
+                    onClick={() => {
+                      setExpandedDept(expandedDept === dept ? null : dept);
+                      setActiveCategory(dept);
+                      setSelectedFilters({});
+                    }}
+                    style={{ fontWeight: 700, fontSize: '13px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid var(--dark-border)', color: activeCategory === dept ? 'var(--primary)' : 'inherit' }}
                   >
-                    {dept} <span>{expandedDept === dept ? '-' : '+'}</span>
+                    {dept} <span style={{ fontSize: '11px' }}>{expandedDept === dept ? '▲' : '▼'}</span>
                   </div>
-                  
+
                   {expandedDept === dept && (
-                    <div className="dept-categories" style={{ paddingLeft: '12px', marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      {Object.entries(categories).map(([catName, leafNodes]) => (
+                    <div style={{ paddingLeft: '10px', marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {Object.entries(cats).map(([catName, subs]) => (
                         <div key={catName}>
-                          <div 
-                            style={{ fontSize: '13px', fontWeight: 600, color: 'var(--gray-1)', cursor: 'pointer', marginBottom: '4px' }}
-                            onClick={() => setActiveCategory(catName)}
+                          <div
+                            onClick={() => { setActiveCategory(catName); setSelectedFilters({}); }}
+                            style={{ fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '3px 0', color: activeCategory === catName ? 'var(--primary)' : 'var(--gray-1)' }}
                           >
                             {catName}
                           </div>
-                          <div style={{ paddingLeft: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            {leafNodes.map(node => (
-                              <div 
-                                key={node} 
-                                style={{ 
-                                  fontSize: '12px', 
-                                  cursor: 'pointer', 
-                                  color: activeCategory === node ? 'var(--primary)' : 'var(--gray-2)'
-                                }}
-                                onClick={() => setActiveCategory(node)}
-                              >
-                                {node}
+                          <div style={{ paddingLeft: '10px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            {subs.map(sub => (
+                              <div key={sub} onClick={() => { setActiveCategory(sub); setSelectedFilters({}); }}
+                                style={{ fontSize: '11px', cursor: 'pointer', padding: '2px 0', color: activeCategory === sub ? 'var(--primary)' : 'var(--gray-2)' }}>
+                                {sub}
                               </div>
                             ))}
                           </div>
@@ -113,74 +173,76 @@ export default function Shop() {
             </div>
           </div>
 
-          {/* Brand Filter */}
-          <div className="filter-group">
-            <div className="filter-title">Brand</div>
-            <div className="filter-list">
-              {['Samsung', 'Apple', 'Sony', 'LG', 'HP'].map(brand => (
-                <label className="filter-item" key={brand}>
-                  <input 
-                    type="checkbox" 
-                    className="filter-checkbox" 
-                    checked={(selectedFilters.brand || []).includes(brand)}
-                    onChange={() => handleFilterChange('brand', brand)}
-                  />
-                  {brand} <span className="filter-count">{Math.floor(Math.random() * 50) + 5}</span>
-                </label>
-              ))}
+          {/* ── Brand Filter (from actual products) ──────── */}
+          {brandsInCategory.length > 0 && (
+            <div className="filter-group">
+              <div className="filter-title">Brand</div>
+              <div className="filter-list">
+                {brandsInCategory.map(brand => {
+                  const count = categoryProducts.filter(p => p.brand === brand).length;
+                  return (
+                    <label className="filter-item" key={brand}>
+                      <input type="checkbox" className="filter-checkbox"
+                        checked={(selectedFilters.brand || []).includes(brand)}
+                        onChange={() => handleFilterChange('brand', brand)} />
+                      {brand} <span className="filter-count">{count}</span>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Price Range (Always visible) */}
+          {/* ── Price Range ───────────────────────────────── */}
           <div className="filter-group">
             <div className="filter-title">Price (₦)</div>
             <div className="price-inputs">
-              <input type="number" className="price-input" placeholder="Min" min="0" />
+              <input type="number" className="price-input" placeholder="Min" min="0"
+                value={priceMin} onChange={e => setPriceMin(e.target.value)} />
               <span>-</span>
-              <input type="number" className="price-input" placeholder="Max" min="0" />
+              <input type="number" className="price-input" placeholder="Max" min="0"
+                value={priceMax} onChange={e => setPriceMax(e.target.value)} />
             </div>
-            <button className="apply-filter-btn" onClick={() => alert('Filters Applied!')}>Apply Price Filter</button>
           </div>
 
-          {/* DYNAMIC FILTERS based on Active Category */}
-          <div style={{ marginBottom: '16px', padding: '12px', background: 'rgba(255,184,0,0.05)', border: '1px dashed var(--primary)', borderRadius: 'var(--radius-sm)' }}>
-            <span style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: 700, textTransform: 'uppercase' }}>Dynamic Specs For:</span>
-            <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--white)' }}>{activeCategory}</div>
-          </div>
-
-          {activeFilters.map(filter => (
-            <div className="filter-group" key={filter.id}>
-              <div className="filter-title">{filter.label}</div>
-              <div className="filter-list">
-                {filter.options.map(option => (
-                  <label className="filter-item" key={option}>
-                    <input 
-                      type="checkbox" 
-                      className="filter-checkbox" 
-                      checked={(selectedFilters[filter.id] || []).includes(option)}
-                      onChange={() => handleFilterChange(filter.id, option)}
-                    />
-                    {option}
-                  </label>
-                ))}
+          {/* ── Dynamic Spec Filters (from real product data) ── */}
+          {dynamicSpecFilters.length > 0 && (
+            <>
+              <div style={{ padding: '8px 0 4px', fontSize: '11px', fontWeight: 800, color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '0.1em', borderTop: '1px solid var(--dark-border)', marginTop: '4px' }}>
+                Specifications
               </div>
-            </div>
-          ))}
+              {dynamicSpecFilters.map(filter => (
+                <div className="filter-group" key={filter.id}>
+                  <div className="filter-title">{filter.label}</div>
+                  <div className="filter-list">
+                    {filter.liveOptions.map(option => {
+                      const count = categoryProducts.filter(p => p.specs?.[filter.id] === option).length;
+                      return (
+                        <label className="filter-item" key={option}>
+                          <input type="checkbox" className="filter-checkbox"
+                            checked={(selectedFilters[filter.id] || []).includes(option)}
+                            onChange={() => handleFilterChange(filter.id, option)} />
+                          {option} <span className="filter-count">{count}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
 
-          {/* Rating Filter */}
+          {/* ── Rating Filter ─────────────────────────────── */}
           <div className="filter-group">
             <div className="filter-title">Customer Rating</div>
             <div className="filter-list">
-              {[4, 3, 2].map(stars => (
+              {[5, 4, 3].map(stars => (
                 <label className="filter-item" key={stars}>
-                  <input 
-                    type="checkbox" 
-                    className="filter-checkbox" 
+                  <input type="checkbox" className="filter-checkbox"
                     checked={(selectedFilters.rating || []).includes(stars)}
-                    onChange={() => handleFilterChange('rating', stars)}
-                  />
+                    onChange={() => handleFilterChange('rating', stars)} />
                   <span className="stars" style={{ color: 'var(--primary)' }}>
-                    {'★'.repeat(stars)}{'☆'.repeat(5-stars)}
+                    {'★'.repeat(stars)}{'☆'.repeat(5 - stars)}
                   </span> & Up
                 </label>
               ))}
@@ -188,24 +250,29 @@ export default function Shop() {
           </div>
         </aside>
 
+        {/* ── Main Product Area ──────────────────────────── */}
         <section className="shop-main">
           <div className="shop-toolbar">
-            <div className="shop-results-count">Showing <span>1-{products.length}</span> of <span>{products.length}</span> results</div>
-            
-            <button className="mobile-filter-toggle" onClick={() => setIsMobileFilterOpen(true)}>
-              Filter Products
+            <div className="shop-results-count">
+              Showing <span>{filteredProducts.length}</span> of <span>{products.length}</span> products
+              {activeCategory && <span style={{ color: 'var(--primary)', marginLeft: '6px' }}>in {activeCategory}</span>}
+            </div>
+
+            <button className="mobile-filter-toggle" onClick={() => setIsMobileFilterOpen(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <SlidersHorizontal size={15} /> Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
             </button>
 
             <div className="shop-sort-wrap">
               <span className="sort-label">Sort by:</span>
-              <select className="sort-select">
-                <option>Recommended</option>
-                <option>Newest Arrivals</option>
-                <option>Price: Low to High</option>
-                <option>Price: High to Low</option>
-                <option>Customer Rating</option>
+              <select className="sort-select" value={sortBy} onChange={e => setSortBy(e.target.value)}>
+                <option value="recommended">Recommended</option>
+                <option value="newest">Newest Arrivals</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="rating">Customer Rating</option>
               </select>
-              
+
               <div className="view-toggles">
                 <button className={`view-btn ${view === 'grid' ? 'active' : ''}`} title="Grid View" onClick={() => setView('grid')}>🔲</button>
                 <button className={`view-btn ${view === 'list' ? 'active' : ''}`} title="List View" onClick={() => setView('list')}>☰</button>
@@ -213,35 +280,30 @@ export default function Shop() {
             </div>
           </div>
 
-          <div className="product-grid" style={{ 
-            display: 'grid', 
+          <div className="product-grid" style={{
+            display: 'grid',
             gridTemplateColumns: view === 'grid' ? 'repeat(auto-fill, minmax(220px, 1fr))' : '1fr',
             gap: '24px'
           }}>
             {loading ? (
-              <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center' }}>
+              <div style={{ gridColumn: '1 / -1', padding: '60px', textAlign: 'center' }}>
                 <Loader2 className="spinner" size={48} color="var(--primary)" style={{ margin: '0 auto 16px' }} />
                 <p>Loading products...</p>
               </div>
-            ) : products.length > 0 ? (
-              products.map(product => (
+            ) : filteredProducts.length > 0 ? (
+              filteredProducts.map(product => (
                 <ProductCard key={product.id} product={product} />
               ))
             ) : (
-              <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center' }}>
-                <p>No products found.</p>
+              <div style={{ gridColumn: '1 / -1', padding: '60px', textAlign: 'center', color: 'var(--gray-1)' }}>
+                <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔍</div>
+                <p style={{ fontWeight: 700 }}>No products found</p>
+                <p style={{ fontSize: '13px' }}>Try adjusting your filters or browse a different category</p>
+                <button onClick={clearAllFilters} style={{ marginTop: '12px', padding: '8px 20px', background: 'var(--primary)', color: 'var(--black)', border: 'none', borderRadius: 'var(--radius-sm)', fontWeight: 700, cursor: 'pointer' }}>
+                  Clear Filters
+                </button>
               </div>
             )}
-          </div>
-
-          <div className="pagination">
-            <button className="page-btn disabled" aria-label="Previous page">‹</button>
-            <button className="page-btn active">1</button>
-            <button className="page-btn">2</button>
-            <button className="page-btn">3</button>
-            <span style={{ color: 'var(--gray-1)' }}>...</span>
-            <button className="page-btn">12</button>
-            <button className="page-btn" aria-label="Next page">›</button>
           </div>
         </section>
       </div>

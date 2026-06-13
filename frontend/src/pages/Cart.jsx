@@ -38,7 +38,7 @@ export default function Cart() {
                   {/* Thumbnail */}
                   <Link to={`/product/${item.id}`} className="item-thumb">
                     <img
-                      src={item.imgUrl}
+                      src={item.imgUrl || item.image || (item.images && item.images[0]) || '/placeholder.jpg'}
                       alt={item.name}
                       style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '6px' }}
                       onError={e => { e.target.style.display = 'none'; }}
