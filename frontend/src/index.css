@@ -2511,3 +2511,38 @@ input, select, textarea { font-family: var(--font-main); outline: none; border: 
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* =============================================
+   RESPONSIVE UTILITIES & ADMIN MOBILE
+   ============================================= */
+.responsive-grid-2, .responsive-grid-3, .responsive-grid-4, .admin-settings-layout {
+  display: grid;
+  gap: 16px;
+}
+.responsive-grid-2 { grid-template-columns: 1fr 1fr; }
+.responsive-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.responsive-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.admin-settings-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
+
+@media (max-width: 1024px) {
+  .responsive-grid-4 { grid-template-columns: 1fr 1fr; }
+  .responsive-grid-3 { grid-template-columns: 1fr 1fr; }
+  .admin-settings-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .responsive-grid-2, .responsive-grid-3, .responsive-grid-4 { grid-template-columns: 1fr; }
+  .profile-layout { display: flex !important; flex-direction: column; }
+  
+  /* Admin specific */
+  .admin-mobile-header { display: flex !important; }
+  .admin-sidebar {
+    position: fixed !important;
+    left: -300px;
+    z-index: 2000;
+    transition: left 0.3s ease;
+    height: 100vh !important;
+  }
+  .admin-sidebar.open { left: 0; }
+  .admin-main-content { padding: 16px !important; }
+}

@@ -179,6 +179,12 @@ export default function Navbar() {
             
             <div style={{ height: '1px', background: 'var(--dark-border)', margin: '8px 0' }}></div>
             
+            {user?.isAdmin && (
+              <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} style={{ color: 'var(--danger)', fontWeight: 700 }}>
+                <ShieldCheck size={18} /> Admin Dashboard
+              </Link>
+            )}
+            
             {/* Categories */}
             <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)}><Menu size={16} /> Shop All Departments</Link>
             <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)}><Smartphone size={16} /> Phones & Wearables</Link>

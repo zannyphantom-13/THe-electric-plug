@@ -109,7 +109,7 @@ export default function Profile() {
 
   return (
     <main className="main-content" style={{ padding: '28px 20px' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+      <div className="profile-layout" style={{ maxWidth: '1200px', margin: '0 auto' }}>
         
         {/* Sidebar */}
         <aside>
@@ -256,7 +256,7 @@ export default function Profile() {
                     ✓ Changes saved successfully!
                   </div>
                 )}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="responsive-grid-2" style={{ gap: '16px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--gray-1)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '8px' }}>First Name</label>
                     <input type="text" value={settingsForm.firstName} onChange={e => setSettingsForm(p => ({ ...p, firstName: e.target.value }))} placeholder="First name" style={{ width: '100%', background: 'var(--dark)', border: '1.5px solid var(--dark-border)', color: 'var(--white)', padding: '12px 16px', borderRadius: 'var(--radius-sm)', fontSize: '14px' }} onFocus={e => e.target.style.borderColor='var(--primary)'} onBlur={e => e.target.style.borderColor='var(--dark-border)'} />

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Navigate, Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
+import Navbar from '../../components/Navbar';
 import {
   Package, PlusCircle, LogOut, Users, ClipboardList,
   LayoutDashboard, Menu, X, Loader2, Tag, Briefcase, Settings
@@ -41,24 +42,34 @@ export default function AdminLayout() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--black)' }}>
+      <Navbar />
 
-      {/* Mobile Header */}
+      {/* Mobile Header for Admin Toggle */}
       <div style={{ display: 'none', background: 'var(--dark-card)', borderBottom: '1px solid var(--dark-border)', padding: '16px 20px', justifyContent: 'space-between', alignItems: 'center' }} className="admin-mobile-header">
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '18px', background: 'linear-gradient(90deg, var(--primary), var(--warning))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          THE ELECTRIC PLUG <span style={{ WebkitTextFillColor: 'var(--gray-1)', fontSize: '12px' }}>ADMIN</span>
+          ADMIN PANEL
         </div>
-        <button onClick={() => setMobileOpen(!mobileOpen)} style={{ background: 'none', border: 'none', color: 'var(--white)', cursor: 'pointer' }}>
-          {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+        <button onClick={() => setMobileOpen(!mobileOpen)} style={{ background: 'var(--dark-border)', padding: '6px', borderRadius: 'var(--radius-sm)', border: 'none', color: 'var(--white)', cursor: 'pointer', display: 'flex' }}>
+          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
 
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
+
+        {/* Sidebar Overlay (Mobile) */}
+        {mobileOpen && (
+          <div 
+            className="admin-overlay"
+            onClick={() => setMobileOpen(false)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1999, backdropFilter: 'blur(4px)' }}
+          />
+        )}
 
         {/* Sidebar */}
-        <aside style={{
+        <aside className={`admin-sidebar ${mobileOpen ? 'open' : ''}`} style={{
           width: '260px', background: 'var(--dark-card)', borderRight: '1px solid var(--dark-border)',
-          display: 'flex', flexDirection: 'column', flexShrink: 0, minHeight: '100vh',
-          position: 'sticky', top: 0
+          display: 'flex', flexDirection: 'column', flexShrink: 0,
+          position: 'sticky', top: 0, height: 'calc(100vh - 140px)', overflowY: 'auto'
         }}>
           {/* Logo */}
           <div style={{ padding: '28px 24px', borderBottom: '1px solid var(--dark-border)' }}>
@@ -114,7 +125,7 @@ export default function AdminLayout() {
         </aside>
 
         {/* Main Content */}
-        <main style={{ flex: 1, padding: '32px', overflowY: 'auto', maxHeight: '100vh' }}>
+        <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }} className="admin-main-content">
           <Outlet />
         </main>
       </div>

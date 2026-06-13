@@ -234,7 +234,7 @@ export default function ProductForm() {
           </FieldGroup>
 
           {/* Category / Brand / Badge */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+          <div className="responsive-grid-3" style={{ gap: '16px' }}>
             <FieldGroup label="Category" icon={<Tag size={14} />} accent="#7c3aed">
               <select name="category" value={formData.category} onChange={handleChange} style={inputStyle}
                 onFocus={e => e.target.style.borderColor = '#7c3aed'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'}>
@@ -264,7 +264,7 @@ export default function ProductForm() {
           </FieldGroup>
 
           {/* Price / Original Price */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="responsive-grid-2" style={{ gap: '16px' }}>
             <FieldGroup label="Selling Price (₦)" icon={<DollarSign size={14} />} accent="#1d4ed8">
               <div style={{ position: 'relative' }}>
                 <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--gray-1)', fontWeight: 700, fontSize: '14px' }}>₦</span>
@@ -287,7 +287,7 @@ export default function ProductForm() {
           </div>
 
           {/* Inventory & Visibility */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px' }}>
+          <div className="responsive-grid-4" style={{ gap: '16px' }}>
             <FieldGroup label="Stock Qty" icon={<Tag size={14} />} accent="#059669">
               <input type="number" name="stock" value={formData.stock} onChange={handleChange} min="0" disabled={formData.unlimited_stock} placeholder="0" style={{ ...inputStyle, opacity: formData.unlimited_stock ? 0.5 : 1 }}
                 onFocus={e => e.target.style.borderColor = '#059669'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'} />

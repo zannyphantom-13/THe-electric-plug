@@ -108,7 +108,7 @@ export default function AdminSettings() {
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 2fr)', gap: '32px' }}>
+      <div className="admin-settings-layout" style={{ gap: '32px' }}>
         {/* Ticker Messages */}
         <div>
           <div style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius-md)', padding: '24px', position: 'sticky', top: '24px' }}>
@@ -157,7 +157,7 @@ export default function AdminSettings() {
                     </button>
                   </div>
 
-                  <div style={{ padding: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                  <div className="responsive-grid-2" style={{ padding: '20px', gap: '20px' }}>
                     <div>
                       <label style={labelStyle}>Headline</label>
                       <input value={slide.title} onChange={e => updateSlide(idx, 'title', e.target.value)} placeholder="e.g. Upgrade Your Space" style={inputStyle} />
