@@ -22,7 +22,7 @@ const INSTALLMENT_OPTIONS = [
 ];
 
 export default function Checkout() {
-  const { user, cart, cartTotal, clearCart } = useApp();
+  const { user, authLoading, cart, cartTotal, clearCart } = useApp();
   const navigate = useNavigate();
 
   const [step, setStep] = useState(0);
@@ -56,10 +56,14 @@ export default function Checkout() {
   const recurringAmount = formData.payMethod === 'installment' ? Math.floor((grandTotal - depositAmount) / activePlan.duration) : 0;
 
   useEffect(() => {
-    if (cart.length === 0 && !placed) {
-      navigate('/cart');
+    if (!authLoading) {
+      if (!user) {
+        navigate('/login?redirect=/checkout');
+      } else if (cart.length === 0 && !placed) {
+        navigate('/cart');
+      }
     }
-  }, [cart, navigate, placed]);
+  }, [user, authLoading, cart, navigate, placed]);
 
   const handleReceiptChange = (e) => {
     const file = e.target.files?.[0];
@@ -128,6 +132,14 @@ export default function Checkout() {
   };
 
   const inputStyle = { width: '100%', background: 'var(--dark)', border: '1.5px solid var(--dark-border)', color: 'var(--white)', padding: '12px 16px', borderRadius: 'var(--radius-sm)', fontSize: '14px' };
+
+  if (authLoading || (!user && !placed)) {
+    return (
+      <main className="main-content" style={{ padding: '28px 20px', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <Loader2 className="spinner" size={32} color="var(--primary)" />
+      </main>
+    );
+  }
 
   if (cart.length === 0 && !placed) return null;
 

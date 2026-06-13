@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, LogIn, ShieldCheck, Lock, Zap, Loader2 } from 'lucide-react';
 import { auth } from '../firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -14,14 +14,17 @@ export default function Login() {
   
   const { user } = useApp();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   // Navigate only after the user context is fully populated (including isAdmin)
   React.useEffect(() => {
     if (isLoggingIn && user) {
-      navigate('/');
+      const searchParams = new URLSearchParams(location.search);
+      const redirectUrl = searchParams.get('redirect') || '/';
+      navigate(redirectUrl);
     }
-  }, [user, isLoggingIn, navigate]);
+  }, [user, isLoggingIn, navigate, location.search]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
