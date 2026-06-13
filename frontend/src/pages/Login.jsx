@@ -21,8 +21,12 @@ export default function Login() {
   React.useEffect(() => {
     if (isLoggingIn && user) {
       const searchParams = new URLSearchParams(location.search);
-      const redirectUrl = searchParams.get('redirect') || '/';
-      navigate(redirectUrl);
+      const redirectUrl = searchParams.get('redirect');
+      if (redirectUrl) {
+        navigate(redirectUrl);
+      } else {
+        navigate(user.isAdmin ? '/admin' : '/');
+      }
     }
   }, [user, isLoggingIn, navigate, location.search]);
 
