@@ -1,12 +1,34 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ShieldCheck, KeyRound, Zap, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ShieldCheck, KeyRound, Zap, ArrowRight, Loader2 } from 'lucide-react';
+import { auth, db } from '../firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 
 export default function VerifyOTP() {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  
+  const [pendingData, setPendingData] = useState(null);
+  const [expectedOtp, setExpectedOtp] = useState('');
+  
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Load pending registration from session
+    const data = sessionStorage.getItem('pendingRegistration');
+    const code = sessionStorage.getItem('registrationOTP');
+    
+    if (data && code) {
+      setPendingData(JSON.parse(data));
+      setExpectedOtp(code);
+    } else {
+      // If no pending registration, kick them back to register
+      navigate('/register');
+    }
+  }, [navigate]);
 
   const handleOtpChange = (value, index) => {
     const newOtp = [...otp];
@@ -23,13 +45,54 @@ export default function VerifyOTP() {
     }
   };
 
-  const handleVerify = (e) => {
+  const handleVerify = async (e) => {
     e.preventDefault();
     const code = otp.join('');
-    if (code.length < 6) { setError('Please enter all 6 digits of your OTP.'); return; }
+    
+    if (code.length < 6) { 
+      setError('Please enter all 6 digits of your OTP.'); 
+      return; 
+    }
+    
+    if (code !== expectedOtp) {
+      setError('Invalid verification code. Please try again.');
+      return;
+    }
+    
     setError('');
     setLoading(true);
-    setTimeout(() => { setLoading(false); setSuccess(true); }, 1500);
+    
+    try {
+      // 1. Create Firebase Auth user
+      const userCredential = await createUserWithEmailAndPassword(
+        auth, 
+        pendingData.email, 
+        pendingData.password
+      );
+      
+      const user = userCredential.user;
+      
+      // 2. Create user document in Firestore
+      await setDoc(doc(db, 'users', user.uid), {
+        firstName: pendingData.firstName,
+        lastName: pendingData.lastName,
+        phone: pendingData.phone,
+        email: pendingData.email,
+        isAdmin: false, // Default role
+        createdAt: new Date().toISOString()
+      });
+      
+      // 3. Clear session storage
+      sessionStorage.removeItem('pendingRegistration');
+      sessionStorage.removeItem('registrationOTP');
+      
+      setSuccess(true);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || 'Failed to create account.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -48,7 +111,10 @@ export default function VerifyOTP() {
               <KeyRound size={28} color="var(--primary)" />
             </div>
             <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 800, color: 'var(--white)' }}>Verify Your Email</h1>
-            <p style={{ color: 'var(--gray-1)', fontSize: '13px', marginTop: '8px' }}>Enter the 6-digit code we sent to your email address.</p>
+            <p style={{ color: 'var(--gray-1)', fontSize: '13px', marginTop: '8px' }}>
+              Enter the 6-digit code we sent to <br/>
+              <span style={{color: 'var(--primary)', fontWeight: 600}}>{pendingData?.email || 'your email address'}</span>
+            </p>
           </div>
 
           <div style={{ padding: '32px' }}>
@@ -57,7 +123,7 @@ export default function VerifyOTP() {
                 <ShieldCheck size={64} color="var(--success)" strokeWidth={1.5} style={{ margin: '0 auto 16px' }} />
                 <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '22px', fontWeight: 800, color: 'var(--success)', marginBottom: '8px' }}>Email Verified!</h3>
                 <p style={{ color: 'var(--gray-1)', marginBottom: '24px' }}>Your account is ready. Welcome to The Electric Plug!</p>
-                <Link to="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'var(--primary)', color: 'var(--black)', padding: '12px 28px', borderRadius: 'var(--radius-md)', fontWeight: 800 }}>Sign In <ArrowRight size={16} /></Link>
+                <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'var(--primary)', color: 'var(--black)', padding: '12px 28px', borderRadius: 'var(--radius-md)', fontWeight: 800 }}>Start Shopping <ArrowRight size={16} /></Link>
               </div>
             ) : (
               <form onSubmit={handleVerify} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -84,14 +150,14 @@ export default function VerifyOTP() {
                   ))}
                 </div>
 
-                <button type="submit" disabled={loading} style={{ width: '100%', background: 'var(--primary)', color: 'var(--black)', padding: '14px', borderRadius: 'var(--radius-md)', fontWeight: 800, fontSize: '15px', fontFamily: 'var(--font-display)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: loading ? 0.7 : 1, boxShadow: '0 8px 24px var(--primary-glow)' }}>
-                  {loading ? <><Zap size={16} /> Verifying...</> : <><ShieldCheck size={16} /> Verify Email</>}
+                <button type="submit" disabled={loading} style={{ width: '100%', background: 'var(--primary)', color: 'var(--black)', padding: '14px', borderRadius: 'var(--radius-md)', fontWeight: 800, fontSize: '15px', fontFamily: 'var(--font-display)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: loading ? 0.7 : 1, boxShadow: '0 8px 24px var(--primary-glow)', transition: 'var(--transition)' }}>
+                  {loading ? <><Loader2 className="spinner" size={16} /> Verifying & Creating Account...</> : <><ShieldCheck size={16} /> Verify Email</>}
                 </button>
 
                 <div style={{ textAlign: 'center' }}>
                   <p style={{ fontSize: '13px', color: 'var(--gray-1)' }}>
                     Didn't receive a code?{' '}
-                    <button type="button" style={{ color: 'var(--primary)', fontWeight: 700, background: 'none', fontSize: '13px' }}>Resend OTP</button>
+                    <button type="button" style={{ color: 'var(--primary)', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px' }}>Resend OTP</button>
                   </p>
                 </div>
               </form>

@@ -66,10 +66,21 @@ export default function Navbar() {
           {/* Desktop: Account Actions */}
           <div className="header-actions desktop-actions">
             <ThemeToggle />
+            
+            {user?.isAdmin && (
+              <Link to="/admin" className="hdr-btn" style={{ flexDirection: 'row', gap: '8px', padding: '10px 14px', alignItems: 'center', background: 'rgba(255, 61, 0, 0.1)', border: '1px solid var(--danger)', borderRadius: 'var(--radius-md)' }}>
+                <ShieldCheck size={22} className="icon" style={{ color: 'var(--danger)' }} />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--danger)', fontWeight: 600 }}>Manage</span>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--white)' }}>Admin</span>
+                </div>
+              </Link>
+            )}
+
             <Link to={user ? "/profile" : "/login"} className="hdr-btn" style={{ flexDirection: 'row', gap: '8px', padding: '10px 14px', alignItems: 'center' }}>
               <User size={22} className="icon" />
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                <span style={{ fontSize: '10px', color: 'var(--gray-1)', fontWeight: 600 }}>{user ? `Hello, ${user.name}` : 'Hello, Sign in'}</span>
+                <span style={{ fontSize: '10px', color: 'var(--gray-1)', fontWeight: 600 }}>{user ? `Hello, ${user.firstName || 'User'}` : 'Hello, Sign in'}</span>
                 <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--white)' }}>Account</span>
               </div>
             </Link>

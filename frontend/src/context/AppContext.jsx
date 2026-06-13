@@ -1,4 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { auth, db } from '../firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
 const AppContext = createContext();
 
@@ -6,6 +9,7 @@ export const useApp = () => useContext(AppContext);
 
 export const AppProvider = ({ children }) => {
   const [user, setUser] = useState(null); // null means not logged in
+  const [authLoading, setAuthLoading] = useState(true);
   
   // For demo, initialize with 2 items in cart and 3 in wishlist to match initial UI loosely
   const [cart, setCart] = useState([]);
@@ -28,9 +32,41 @@ export const AppProvider = ({ children }) => {
     localStorage.setItem('wishlist', JSON.stringify(wishlist));
   }, [wishlist]);
 
-  // Auth
-  const login = (userData) => setUser(userData);
-  const logout = () => setUser(null);
+  // Auth Listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          // Fetch additional user metadata (like isAdmin) from Firestore
+          const docRef = doc(db, 'users', firebaseUser.uid);
+          const docSnap = await getDoc(docRef);
+          
+          if (docSnap.exists()) {
+            setUser({ uid: firebaseUser.uid, ...firebaseUser, ...docSnap.data() });
+          } else {
+            setUser({ uid: firebaseUser.uid, ...firebaseUser });
+          }
+        } catch (error) {
+          console.error("Error fetching user data from Firestore", error);
+          setUser({ uid: firebaseUser.uid, ...firebaseUser });
+        }
+      } else {
+        setUser(null);
+      }
+      setAuthLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      setUser(null);
+    } catch (error) {
+      console.error("Error signing out", error);
+    }
+  };
 
   // Cart Functions
   const addToCart = (product, qty = 1) => {
@@ -53,8 +89,8 @@ export const AppProvider = ({ children }) => {
     setCart(prev => prev.filter(item => item.id !== id));
   };
 
-  const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-  const cartCount = cart.length; // or total quantity: cart.reduce((sum, item) => sum + item.qty, 0)
+  const cartTotal = cart.reduce((sum, item) => sum + ((item.price || 0) * (item.qty || 1)), 0);
+  const cartCount = cart.reduce((sum, item) => sum + (item.qty || 1), 0);
 
   // Wishlist Functions
   const toggleWishlist = (product) => {
@@ -76,7 +112,7 @@ export const AppProvider = ({ children }) => {
 
   const contextValue = {
     user,
-    login,
+    authLoading,
     logout,
     cart,
     addToCart,

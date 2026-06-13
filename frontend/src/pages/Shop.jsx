@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { allProducts } from '../data/productData';
+import React, { useState, useEffect } from 'react';
+import { allProducts as staticProducts } from '../data/productData';
+import { getProducts } from '../utils/productService';
 import { ProductCard } from './Home';
 import { categoryTaxonomy, categoryAttributes, defaultAttributes } from '../data/taxonomy';
+import { Loader2 } from 'lucide-react';
 
 export default function Shop() {
   const [view, setView] = useState('grid');
@@ -9,6 +11,29 @@ export default function Shop() {
   const [expandedDept, setExpandedDept] = useState('Computing');
   const [selectedFilters, setSelectedFilters] = useState({});
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const firestoreProducts = await getProducts();
+        // If firestore is empty, optionally fallback to static (useful for dev)
+        if (firestoreProducts.length === 0) {
+          setProducts(staticProducts);
+        } else {
+          setProducts(firestoreProducts);
+        }
+      } catch (error) {
+        console.error("Failed to load products", error);
+        setProducts(staticProducts);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
   
   // Get attributes for the currently active category, fallback to default
   const activeFilters = categoryAttributes[activeCategory] || defaultAttributes;
@@ -165,7 +190,7 @@ export default function Shop() {
 
         <section className="shop-main">
           <div className="shop-toolbar">
-            <div className="shop-results-count">Showing <span>1-{allProducts.length}</span> of <span>{allProducts.length}</span> results</div>
+            <div className="shop-results-count">Showing <span>1-{products.length}</span> of <span>{products.length}</span> results</div>
             
             <button className="mobile-filter-toggle" onClick={() => setIsMobileFilterOpen(true)}>
               Filter Products
@@ -188,10 +213,25 @@ export default function Shop() {
             </div>
           </div>
 
-          <div className={`shop-grid ${view === 'list' ? 'list-view' : ''}`} id="shop-products">
-            {allProducts.map(product => (
-              <ProductCard key={product.id} product={product} />
-            ))}
+          <div className="product-grid" style={{ 
+            display: 'grid', 
+            gridTemplateColumns: view === 'grid' ? 'repeat(auto-fill, minmax(220px, 1fr))' : '1fr',
+            gap: '24px'
+          }}>
+            {loading ? (
+              <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center' }}>
+                <Loader2 className="spinner" size={48} color="var(--primary)" style={{ margin: '0 auto 16px' }} />
+                <p>Loading products...</p>
+              </div>
+            ) : products.length > 0 ? (
+              products.map(product => (
+                <ProductCard key={product.id} product={product} />
+              ))
+            ) : (
+              <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center' }}>
+                <p>No products found.</p>
+              </div>
+            )}
           </div>
 
           <div className="pagination">

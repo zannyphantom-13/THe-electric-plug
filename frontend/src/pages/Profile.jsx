@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { User, Package, Heart, MapPin, Bell, Settings, LogOut, ChevronRight, ShoppingCart, Star, ShieldCheck } from 'lucide-react';
+import { User, Package, Heart, MapPin, Bell, Settings, LogOut, ChevronRight, ShoppingCart, Star, ShieldCheck, Camera, Loader2 } from 'lucide-react';
+import { uploadImage } from '../utils/cloudinaryService';
 
 const mockOrders = [
   { id: '#TEP-001', product: 'Samsung Galaxy S24 Ultra', status: 'Delivered', date: 'Jun 8, 2026', amount: '₦1,550,000', img: '/images/phone.png' },
@@ -12,6 +13,25 @@ const statusColor = { Delivered: '#00E676', 'In Transit': '#00B0FF', Processing:
 
 export default function Profile() {
   const [activeTab, setActiveTab] = useState('orders');
+  const [profileImage, setProfileImage] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const imageUrl = await uploadImage(file);
+      setProfileImage(imageUrl);
+      // Here you would typically also save the URL to your database/backend
+    } catch (error) {
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const tabs = [
     { id: 'orders', label: 'My Orders', icon: Package },
@@ -30,7 +50,36 @@ export default function Profile() {
           <div style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
             {/* Profile Header */}
             <div style={{ background: 'linear-gradient(135deg, #1a0a00, #2d1200)', padding: '28px 24px', textAlign: 'center' }}>
-              <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', fontSize: '32px', fontWeight: 900, color: 'var(--black)', boxShadow: '0 8px 24px var(--primary-glow)' }}>H</div>
+              <div 
+                style={{ position: 'relative', width: '90px', height: '90px', margin: '0 auto 12px', cursor: isUploading ? 'not-allowed' : 'pointer' }}
+                onClick={() => !isUploading && fileInputRef.current?.click()}
+                title="Click to change profile picture"
+              >
+                <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', fontWeight: 900, color: 'var(--black)', boxShadow: '0 8px 24px var(--primary-glow)', overflow: 'hidden', border: '2px solid var(--primary)' }}>
+                  {isUploading ? (
+                    <Loader2 className="spinner" size={32} />
+                  ) : profileImage ? (
+                    <img src={profileImage} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    "H"
+                  )}
+                </div>
+                
+                {/* Overlay camera icon */}
+                {!isUploading && (
+                  <div style={{ position: 'absolute', bottom: 0, right: 0, background: 'var(--black)', border: '2px solid var(--primary)', borderRadius: '50%', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Camera size={14} color="var(--primary)" />
+                  </div>
+                )}
+                
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleImageUpload} 
+                  accept="image/*" 
+                  style={{ display: 'none' }} 
+                />
+              </div>
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 800, color: 'var(--white)' }}>Hassan Doe</h2>
               <p style={{ fontSize: '13px', color: 'var(--gray-1)', marginTop: '4px' }}>hassan@email.com</p>
               <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '16px' }}>

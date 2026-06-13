@@ -13,6 +13,7 @@ import Profile from './pages/Profile';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Wishlist from './pages/Wishlist';
+import AdminDashboard from './pages/AdminDashboard';
 import ScrollToTop from './components/ScrollToTop';
 import FloatingWidgets from './components/FloatingWidgets';
 import { AppProvider } from './context/AppContext';
@@ -35,6 +36,7 @@ export default function App() {
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
         <Footer />
         <FloatingWidgets />

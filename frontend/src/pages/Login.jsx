@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Eye, EyeOff, LogIn, ShieldCheck, Lock, Zap } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, LogIn, ShieldCheck, Lock, Zap, Loader2 } from 'lucide-react';
+import { auth } from '../firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -8,16 +10,28 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // AppContext handles fetching the user document and roles automatically via onAuthStateChanged
+      navigate('/');
+    } catch (err) {
+      console.error(err);
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+        setError('Invalid email or password. Please try again.');
+      } else {
+        setError(err.message || 'Failed to sign in.');
+      }
+    } finally {
       setLoading(false);
-      setError('Invalid email or password. Please try again.');
-    }, 1500);
+    }
   };
 
   return (
@@ -78,14 +92,14 @@ export default function Login() {
                     onFocus={e => e.target.style.borderColor = 'var(--primary)'}
                     onBlur={e => e.target.style.borderColor = 'var(--dark-border)'}
                   />
-                  <button type="button" onClick={() => setShowPassword(v => !v)} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--gray-1)', background: 'none' }}>
+                  <button type="button" onClick={() => setShowPassword(v => !v)} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--gray-1)', background: 'none', border: 'none', cursor: 'pointer' }}>
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </div>
 
-              <button type="submit" disabled={loading} style={{ width: '100%', background: 'var(--primary)', color: 'var(--black)', padding: '14px', borderRadius: 'var(--radius-md)', fontWeight: 800, fontSize: '15px', fontFamily: 'var(--font-display)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'var(--transition)', opacity: loading ? 0.7 : 1, boxShadow: '0 8px 24px var(--primary-glow)' }}>
-                {loading ? <><Zap size={16} /> Signing In...</> : <><LogIn size={16} /> Sign In to Account</>}
+              <button type="submit" disabled={loading} style={{ width: '100%', background: 'var(--primary)', color: 'var(--black)', padding: '14px', borderRadius: 'var(--radius-md)', fontWeight: 800, fontSize: '15px', fontFamily: 'var(--font-display)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'var(--transition)', opacity: loading ? 0.7 : 1, boxShadow: '0 8px 24px var(--primary-glow)', border: 'none', cursor: loading ? 'not-allowed' : 'pointer' }}>
+                {loading ? <><Loader2 className="spinner" size={16} /> Signing In...</> : <><LogIn size={16} /> Sign In to Account</>}
               </button>
             </form>
 

@@ -94,7 +94,7 @@ const ScrollableProductSlider = ({ products }) => {
       </button>
       
       <div className="scrollable-2row" ref={scrollRef}>
-        {products.map(product => (
+        {products?.map(product => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>
@@ -238,7 +238,28 @@ const heroSlides = [
 ];
 
 export default function Home() {
+  const [data, setData] = useState(productData);
   const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const { getProducts } = await import('../utils/productService');
+        const dbProducts = await getProducts();
+        if (dbProducts && dbProducts.length > 0) {
+          setData({
+            flashSale: dbProducts.slice(0, 8),
+            bestSellers: dbProducts.slice(0, 6),
+            newArrivals: dbProducts.slice(0, 10),
+            recommended: dbProducts.slice(0, 10)
+          });
+        }
+      } catch (err) {
+        console.error('Failed to fetch home products', err);
+      }
+    };
+    loadProducts();
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Eye, EyeOff, UserPlus, ShieldCheck, Lock, CheckCircle, Zap } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, UserPlus, ShieldCheck, Lock, CheckCircle, Zap, Loader2 } from 'lucide-react';
+import { sendOTPEmail } from '../utils/emailService';
 
 export default function Register() {
   const [formData, setFormData] = useState({ firstName: '', lastName: '', phone: '', email: '', password: '', confirmPassword: '' });
@@ -11,6 +12,8 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     let value = e.target.value;
@@ -18,13 +21,48 @@ export default function Register() {
     setFormData(prev => ({ ...prev, [e.target.name]: value }));
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
-    if (formData.password !== formData.confirmPassword) { setError('Passwords do not match.'); return; }
-    if (!agreedTerms || !agreedPrivacy) { setError('Please accept both the Terms & Conditions and Privacy Policy.'); return; }
+    
+    if (formData.password !== formData.confirmPassword) { 
+      setError('Passwords do not match.'); 
+      return; 
+    }
+    
+    if (!agreedTerms || !agreedPrivacy) { 
+      setError('Please accept both the Terms & Conditions and Privacy Policy.'); 
+      return; 
+    }
+    
     setLoading(true);
-    setTimeout(() => { setLoading(false); setSuccess(true); }, 1500);
+    try {
+      // 1. Generate 6-digit OTP
+      const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // 2. Send email via EmailJS
+      const emailSent = await sendOTPEmail(formData.email, generatedOtp, formData.firstName);
+      
+      if (!emailSent) {
+        throw new Error('Failed to send verification email. Please check your email address and try again.');
+      }
+      
+      // 3. Store pending registration data and OTP in sessionStorage
+      sessionStorage.setItem('pendingRegistration', JSON.stringify(formData));
+      sessionStorage.setItem('registrationOTP', generatedOtp);
+      
+      // 4. Show success and redirect
+      setSuccess(true);
+      setTimeout(() => {
+        navigate('/verify-otp');
+      }, 1500);
+
+    } catch (err) {
+      console.error(err);
+      setError(err.message || 'An error occurred during registration.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputStyle = { width: '100%', background: 'var(--dark)', border: '1.5px solid var(--dark-border)', color: 'var(--white)', padding: '12px 16px', borderRadius: 'var(--radius-sm)', fontSize: '14px', transition: 'var(--transition)' };
@@ -53,9 +91,9 @@ export default function Register() {
             {success ? (
               <div style={{ textAlign: 'center', padding: '24px 0' }}>
                 <CheckCircle size={64} color="var(--success)" strokeWidth={1.5} style={{ margin: '0 auto 16px' }} />
-                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '22px', fontWeight: 800, color: 'var(--success)', marginBottom: '8px' }}>Account Created!</h3>
-                <p style={{ color: 'var(--gray-1)', marginBottom: '24px' }}>A verification OTP has been sent to your email.</p>
-                <Link to="/verify-otp" style={{ display: 'inline-block', background: 'var(--primary)', color: 'var(--black)', padding: '12px 28px', borderRadius: 'var(--radius-md)', fontWeight: 800 }}>Verify Email →</Link>
+                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '22px', fontWeight: 800, color: 'var(--success)', marginBottom: '8px' }}>OTP Sent!</h3>
+                <p style={{ color: 'var(--gray-1)', marginBottom: '24px' }}>A verification code has been sent to your email.</p>
+                <div style={{ display: 'inline-block', background: 'var(--primary)', color: 'var(--black)', padding: '12px 28px', borderRadius: 'var(--radius-md)', fontWeight: 800 }}>Redirecting...</div>
               </div>
             ) : (
               <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -122,7 +160,7 @@ export default function Register() {
                 </div>
 
                 <button type="submit" disabled={loading} style={{ width: '100%', background: 'var(--primary)', color: 'var(--black)', padding: '14px', borderRadius: 'var(--radius-md)', fontWeight: 800, fontSize: '15px', fontFamily: 'var(--font-display)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'var(--transition)', opacity: loading ? 0.7 : 1, boxShadow: '0 8px 24px var(--primary-glow)' }}>
-                  {loading ? <><Zap size={16} /> Creating Account...</> : <><UserPlus size={16} /> Create My Account</>}
+                  {loading ? <><Loader2 className="spinner" size={16} /> Creating Account...</> : <><UserPlus size={16} /> Create My Account</>}
                 </button>
 
                 <div style={{ paddingTop: '16px', borderTop: '1px solid var(--dark-border)', textAlign: 'center' }}>
