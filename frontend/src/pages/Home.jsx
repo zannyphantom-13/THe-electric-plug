@@ -14,11 +14,11 @@ export const ProductCard = ({ product }) => {
   const { addToCart, toggleWishlist, isInWishlist } = useApp();
   const inWishlist = isInWishlist(product.id);
 
-  const priceHtml = product.oldPrice ? (
+  const priceHtml = product.originalPrice ? (
     <>
-      <span className="product-old-price">{formatCurrency(product.oldPrice)}</span>
+      <span className="product-old-price">{formatCurrency(product.originalPrice)}</span>
       <span className="product-price">{formatCurrency(product.price)}</span>
-      <span className="product-discount">-{Math.round((1 - product.price/product.oldPrice) * 100)}%</span>
+      <span className="product-discount">-{Math.round((1 - product.price/product.originalPrice) * 100)}%</span>
     </>
   ) : (
     <span className="product-price">{formatCurrency(product.price)}</span>
@@ -27,7 +27,7 @@ export const ProductCard = ({ product }) => {
   let badgeHtml = null;
   if (product.badge === 'hot') badgeHtml = <span className="product-badge hot">HOT</span>;
   else if (product.badge === 'new') badgeHtml = <span className="product-badge new">NEW</span>;
-  else if (product.badge === 'sale' || product.oldPrice) badgeHtml = <span className="product-badge">SALE</span>;
+  else if (product.badge === 'sale' || product.originalPrice) badgeHtml = <span className="product-badge">SALE</span>;
 
   return (
     <article className="product-card" tabIndex="0">

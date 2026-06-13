@@ -39,11 +39,12 @@ export default function ProductForm() {
 
   const [formData, setFormData] = useState({
     name: '', department: 'Computing', category: 'Laptops', subcategory: '', brand: '', description: '',
-    overview: '', colors: [],
+    overview: '', colors: [], features: [],
     price: '', originalPrice: '', badge: '', stock: 0,
     unlimited_stock: false, is_hidden: false, featured: false, featuredPosition: ''
   });
   const [colorInput, setColorInput] = useState('');
+  const [featureInput, setFeatureInput] = useState('');
   const [customSpecKey, setCustomSpecKey] = useState('');
   const [customSpecValue, setCustomSpecValue] = useState('');
   const [specs, setSpecs] = useState({});
@@ -75,7 +76,7 @@ export default function ProductForm() {
           const data = docSnap.data();
           const rawColors = data.colors || [];
           const normalizedColors = rawColors.map(c => typeof c === 'string' ? { name: c, image: null, file: null } : c);
-          setFormData({ ...data, price: String(data.price || ''), originalPrice: String(data.originalPrice || ''), stock: String(data.stock || 0), colors: normalizedColors });
+          setFormData({ ...data, price: String(data.price || ''), originalPrice: String(data.originalPrice || ''), stock: String(data.stock || 0), colors: normalizedColors, features: data.features || [] });
           if (data.specs) setSpecs(data.specs);
           if (data.images && data.images.length > 0) {
             setImagePreviews(data.images);
@@ -190,6 +191,21 @@ export default function ProductForm() {
     reader.readAsDataURL(file);
   };
 
+  const handleAddFeature = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const f = featureInput.trim();
+      if (f && !(formData.features || []).includes(f)) {
+        setFormData(p => ({ ...p, features: [...(p.features || []), f] }));
+      }
+      setFeatureInput('');
+    }
+  };
+
+  const handleRemoveFeature = (feat) => {
+    setFormData(p => ({ ...p, features: (p.features || []).filter(f => f !== feat) }));
+  };
+
   const handleAddCustomSpec = () => {
     const key = customSpecKey.trim();
     const val = customSpecValue.trim();
@@ -247,6 +263,7 @@ export default function ProductForm() {
         description: formData.description || '',
         overview: formData.overview || '',
         colors: finalColors,
+        features: formData.features || [],
         specs: specs,
         price: Number(formData.price),
         originalPrice: formData.originalPrice ? Number(formData.originalPrice) : null,
@@ -454,6 +471,24 @@ export default function ProductForm() {
                   placeholder="Enter product features and specs…"
                   style={{ ...inputStyle, resize: 'vertical' }}
                   onFocus={e => e.target.style.borderColor = '#8b5cf6'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'} />
+              </FieldGroup>
+              <FieldGroup label="Key Features (Bullet Points)" icon={<List size={14} />} accent="#8b5cf6" hint="Type a feature and press Enter to add">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <input type="text" value={featureInput} onChange={e => setFeatureInput(e.target.value)} onKeyDown={handleAddFeature} placeholder="e.g. Up to 30 hours of battery life with quick charging." style={inputStyle}
+                    onFocus={e => e.target.style.borderColor = '#8b5cf6'} onBlur={e => e.target.style.borderColor = 'var(--dark-border)'} />
+                  {(formData.features && formData.features.length > 0) && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {formData.features.map((feat, idx) => (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', background: 'rgba(139,92,246,0.05)', border: '1px solid rgba(139,92,246,0.2)', padding: '6px 12px', borderRadius: 'var(--radius-sm)' }}>
+                          <span style={{ fontSize: '13px', color: 'var(--white)' }}>• {feat}</span>
+                          <button type="button" onClick={() => handleRemoveFeature(feat)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}>
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </FieldGroup>
             </div>
           </div>

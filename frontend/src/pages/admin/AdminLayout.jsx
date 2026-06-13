@@ -54,7 +54,7 @@ export default function AdminLayout() {
         </button>
       </div>
 
-      <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
 
         {/* Sidebar Overlay (Mobile) */}
         {mobileOpen && (
@@ -125,7 +125,7 @@ export default function AdminLayout() {
         </aside>
 
         {/* Main Content */}
-        <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }} className="admin-main-content">
+        <main style={{ flex: 1, minWidth: 0, padding: '32px', overflowX: 'hidden', overflowY: 'auto' }} className="admin-main-content">
           <Outlet />
         </main>
       </div>

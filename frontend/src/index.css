@@ -2546,3 +2546,36 @@ input, select, textarea { font-family: var(--font-main); outline: none; border: 
   .admin-sidebar.open { left: 0; }
   .admin-main-content { padding: 16px !important; }
 }
+
+/* Admin global overflow containment */
+.admin-main-content > * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-main-content table {
+  width: 100%;
+  table-layout: fixed;
+  word-break: break-word;
+}
+
+.admin-main-content input,
+.admin-main-content textarea,
+.admin-main-content select {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Responsive grid helpers */
+.admin-main-content .responsive-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .admin-main-content .responsive-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+

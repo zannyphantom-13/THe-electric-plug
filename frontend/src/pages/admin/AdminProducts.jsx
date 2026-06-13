@@ -22,26 +22,28 @@ function ProductRow({ product, onDelete, onToggleHide, onToggleFeatured }) {
         background: hovered ? 'rgba(255,94,0,0.03)' : 'var(--dark-card)',
         border: `1px solid ${hovered ? 'rgba(255,94,0,0.3)' : 'var(--dark-border)'}`,
         borderRadius: 'var(--radius-md)', padding: '16px 20px',
-        display: 'flex', alignItems: 'center', gap: '16px',
+        display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap',
         transition: 'var(--transition)', position: 'relative',
         opacity: product.is_hidden ? 0.6 : 1
       }}
     >
       {/* Product Image */}
       <div style={{ width: '64px', height: '64px', borderRadius: 'var(--radius-sm)', background: 'var(--dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-        {product.image ? (
-          <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        {product.image || product.imgUrl || (product.images && product.images[0]) ? (
+          <img src={product.image || product.imgUrl || product.images[0]} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
           <Package size={28} color="var(--gray-2)" />
         )}
       </div>
 
       {/* Product Info */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
-          <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '300px' }}>{product.name}</h3>
-          {product.featured && <span style={{ background: 'rgba(255,206,30,0.15)', color: 'var(--warning)', fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '20px', textTransform: 'uppercase', flexShrink: 0 }}>⭐ Featured</span>}
-          {product.is_hidden && <span style={{ background: 'rgba(255,61,0,0.15)', color: 'var(--danger)', fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '20px', textTransform: 'uppercase', flexShrink: 0 }}>Hidden</span>}
+      <div style={{ flex: '1 1 250px', minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '6px' }}>
+          <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1 1 100%' }}>{product.name}</h3>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {product.featured && <span style={{ background: 'rgba(255,206,30,0.15)', color: 'var(--warning)', fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '20px', textTransform: 'uppercase' }}>⭐ Featured</span>}
+            {product.is_hidden && <span style={{ background: 'rgba(255,61,0,0.15)', color: 'var(--danger)', fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '20px', textTransform: 'uppercase' }}>Hidden</span>}
+          </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '12px', color: 'var(--gray-1)' }}>{product.brand || '—'}</span>
@@ -50,31 +52,33 @@ function ProductRow({ product, onDelete, onToggleHide, onToggleFeatured }) {
         </div>
       </div>
 
-      {/* Price */}
-      <div style={{ textAlign: 'right', flexShrink: 0 }}>
-        <div style={{ fontSize: '16px', fontWeight: 900, fontFamily: 'var(--font-display)', color: 'var(--primary)' }}>{formatCurrency(product.price)}</div>
-        {product.originalPrice && <div style={{ fontSize: '12px', color: 'var(--gray-2)', textDecoration: 'line-through' }}>{formatCurrency(product.originalPrice)}</div>}
-        {savings > 0 && <div style={{ fontSize: '11px', color: 'var(--success)', fontWeight: 700 }}>-{savings}%</div>}
-      </div>
+      <div style={{ display: 'flex', flex: '1 1 200px', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+        {/* Price */}
+        <div style={{ textAlign: 'left', flexShrink: 0 }}>
+          <div style={{ fontSize: '16px', fontWeight: 900, fontFamily: 'var(--font-display)', color: 'var(--primary)' }}>{formatCurrency(product.price)}</div>
+          {product.originalPrice && <div style={{ fontSize: '12px', color: 'var(--gray-2)', textDecoration: 'line-through' }}>{formatCurrency(product.originalPrice)}</div>}
+          {savings > 0 && <div style={{ fontSize: '11px', color: 'var(--success)', fontWeight: 700 }}>-{savings}%</div>}
+        </div>
 
-      {/* Actions */}
-      <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-        <Link to={`/admin/edit/${product.id}`} title="Edit Product"
-          style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid var(--dark-border)', background: 'var(--dark)', color: 'var(--gray-1)', transition: 'var(--transition)' }}>
-          <Edit size={15} />
-        </Link>
-        <button onClick={() => onToggleFeatured(product.id, product.featured)} title={product.featured ? 'Unfeature' : 'Feature'}
-          style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: `1px solid ${product.featured ? 'var(--warning)' : 'var(--dark-border)'}`, background: product.featured ? 'rgba(255,206,30,0.1)' : 'var(--dark)', color: product.featured ? 'var(--warning)' : 'var(--gray-1)', transition: 'var(--transition)' }}>
-          <Star size={15} fill={product.featured ? 'currentColor' : 'none'} />
-        </button>
-        <button onClick={() => onToggleHide(product.id, product.is_hidden)} title={product.is_hidden ? 'Show Product' : 'Hide Product'}
-          style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid var(--dark-border)', background: 'var(--dark)', color: product.is_hidden ? 'var(--warning)' : 'var(--gray-1)', transition: 'var(--transition)' }}>
-          {product.is_hidden ? <EyeOff size={15} /> : <Eye size={15} />}
-        </button>
-        <button onClick={() => onDelete(product.id, product.name)}
-          style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid rgba(255,61,0,0.3)', background: 'rgba(255,61,0,0.08)', color: 'var(--danger)', transition: 'var(--transition)' }}>
-          <Trash2 size={15} />
-        </button>
+        {/* Actions */}
+        <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+          <Link to={`/admin/edit/${product.id}`} title="Edit Product"
+            style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid var(--dark-border)', background: 'var(--dark)', color: 'var(--gray-1)', transition: 'var(--transition)' }}>
+            <Edit size={15} />
+          </Link>
+          <button onClick={() => onToggleFeatured(product.id, product.featured)} title={product.featured ? 'Unfeature' : 'Feature'}
+            style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: `1px solid ${product.featured ? 'var(--warning)' : 'var(--dark-border)'}`, background: product.featured ? 'rgba(255,206,30,0.1)' : 'var(--dark)', color: product.featured ? 'var(--warning)' : 'var(--gray-1)', transition: 'var(--transition)' }}>
+            <Star size={15} fill={product.featured ? 'currentColor' : 'none'} />
+          </button>
+          <button onClick={() => onToggleHide(product.id, product.is_hidden)} title={product.is_hidden ? 'Show Product' : 'Hide Product'}
+            style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid var(--dark-border)', background: 'var(--dark)', color: product.is_hidden ? 'var(--warning)' : 'var(--gray-1)', transition: 'var(--transition)' }}>
+            {product.is_hidden ? <EyeOff size={15} /> : <Eye size={15} />}
+          </button>
+          <button onClick={() => onDelete(product.id, product.name)}
+            style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid rgba(255,61,0,0.3)', background: 'rgba(255,61,0,0.08)', color: 'var(--danger)', transition: 'var(--transition)' }}>
+            <Trash2 size={15} />
+          </button>
+        </div>
       </div>
     </div>
   );
