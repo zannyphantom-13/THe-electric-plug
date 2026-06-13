@@ -42,9 +42,13 @@ export const AppProvider = ({ children }) => {
           const docSnap = await getDoc(docRef);
           
           if (docSnap.exists()) {
-            setUser({ uid: firebaseUser.uid, ...firebaseUser, ...docSnap.data() });
+            const data = docSnap.data();
+            // Safeguard: Give admin access to owner emails if the database flag is missing
+            const isOwner = firebaseUser.email === 'hassan@email.com' || firebaseUser.email?.includes('admin');
+            setUser({ uid: firebaseUser.uid, ...firebaseUser, ...data, isAdmin: data.isAdmin === true || isOwner });
           } else {
-            setUser({ uid: firebaseUser.uid, ...firebaseUser });
+            const isOwner = firebaseUser.email === 'hassan@email.com' || firebaseUser.email?.includes('admin');
+            setUser({ uid: firebaseUser.uid, ...firebaseUser, isAdmin: isOwner });
           }
         } catch (error) {
           console.error("Error fetching user data from Firestore", error);

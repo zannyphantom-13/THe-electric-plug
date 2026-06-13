@@ -41,8 +41,9 @@ export default function ProductForm() {
     price: '', originalPrice: '', badge: '', stock: 0,
     unlimited_stock: false, is_hidden: false, featured: false, featuredPosition: ''
   });
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  });
+  const [imageFiles, setImageFiles] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -68,7 +69,11 @@ export default function ProductForm() {
         if (docSnap.exists()) {
           const data = docSnap.data();
           setFormData({ ...data, price: String(data.price || ''), originalPrice: String(data.originalPrice || ''), stock: String(data.stock || 0) });
-          if (data.image || data.imgUrl || data.img) setImagePreview(data.image || data.imgUrl || data.img);
+          if (data.images && data.images.length > 0) {
+            setImagePreviews(data.images);
+          } else if (data.image || data.imgUrl || data.img) {
+            setImagePreviews([data.image || data.imgUrl || data.img]);
+          }
           if (data.featured) setPositionInput(String(data.featuredPosition || ''));
         } else {
           setError('Product not found.');
@@ -100,23 +105,27 @@ export default function ProductForm() {
     setFormData(p => ({ ...p, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  const processFile = file => {
-    if (!file) return;
-    setImageFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => setImagePreview(reader.result);
-    reader.readAsDataURL(file);
+  const processFiles = files => {
+    if (!files || files.length === 0) return;
+    const newFiles = Array.from(files);
+    setImageFiles(prev => [...prev, ...newFiles]);
+    
+    newFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => setImagePreviews(prev => [...prev, reader.result]);
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleDrop = e => {
     e.preventDefault();
     setDragOver(false);
-    processFile(e.dataTransfer.files[0]);
+    processFiles(e.dataTransfer.files);
   };
 
-  const clearImage = () => {
-    setImageFile(null);
-    setImagePreview(null);
+  const clearImage = (index) => {
+    setImageFiles(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -140,9 +149,19 @@ export default function ProductForm() {
     setError('');
     setSaving(true);
     try {
-      let imageUrl = formData.image || formData.imgUrl || formData.img || '';
-      if (imageFile) imageUrl = await uploadImage(imageFile);
-      if (!imageUrl && !isEditing) throw new Error('A product image is required.');
+      let imageUrls = [];
+      
+      // Keep existing non-file previews (from DB)
+      const existingUrls = imagePreviews.filter(p => p.startsWith('http'));
+      imageUrls.push(...existingUrls);
+
+      // Upload new files
+      for (const file of imageFiles) {
+        const url = await uploadImage(file);
+        if (url) imageUrls.push(url);
+      }
+
+      if (imageUrls.length === 0 && !isEditing) throw new Error('At least one product image is required.');
 
       const payload = {
         name: formData.name,
@@ -157,7 +176,8 @@ export default function ProductForm() {
         is_hidden: formData.is_hidden,
         featured: formData.featured,
         featuredPosition: formData.featured ? (Number(positionInput) || 0) : null,
-        image: imageUrl, imgUrl: imageUrl,
+        images: imageUrls,
+        image: imageUrls[0] || '', imgUrl: imageUrls[0] || '',
         rating: formData.rating || 5,
         reviews: formData.reviews || 0,
         updatedAt: new Date(),
@@ -181,7 +201,7 @@ export default function ProductForm() {
 
   const hasDiscount = formData.originalPrice && formData.price && Number(formData.price) < Number(formData.originalPrice);
   const discountPct = hasDiscount ? Math.round(100 - (Number(formData.price) / Number(formData.originalPrice)) * 100) : 0;
-  const currentImg = imagePreview;
+  const discountPct = hasDiscount ? Math.round(100 - (Number(formData.price) / Number(formData.originalPrice)) * 100) : 0;
   const stockOk = formData.unlimited_stock || Number(formData.stock || 0) > 0;
 
   if (loading) return (
@@ -210,9 +230,18 @@ export default function ProductForm() {
             {isEditing ? '✏️ Edit Product' : '✨ Add New Product'}
           </h1>
         </div>
-        {currentImg && (
-          <div style={{ width: '64px', height: '64px', borderRadius: '12px', overflow: 'hidden', border: '2px solid rgba(255,94,0,0.3)', flexShrink: 0 }}>
-            <img src={currentImg} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        {imagePreviews.length > 0 && (
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {imagePreviews.slice(0, 3).map((img, i) => (
+              <div key={i} style={{ width: '48px', height: '48px', borderRadius: '8px', overflow: 'hidden', border: '2px solid rgba(255,94,0,0.3)', flexShrink: 0 }}>
+                <img src={img} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            ))}
+            {imagePreviews.length > 3 && (
+              <div style={{ width: '48px', height: '48px', borderRadius: '8px', background: 'var(--dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, color: 'var(--primary)', border: '2px solid rgba(255,94,0,0.3)' }}>
+                +{imagePreviews.length - 3}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -312,40 +341,39 @@ export default function ProductForm() {
           </div>
 
           {/* Image Upload */}
-          <FieldGroup label="Product Image" icon={<ImageIcon size={14} />} accent="var(--warning)">
+          <FieldGroup label={`Product Images (${imagePreviews.length})`} icon={<ImageIcon size={14} />} accent="var(--warning)">
             <div
               onDrop={handleDrop}
               onDragOver={e => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
               onClick={() => fileInputRef.current?.click()}
-              style={{ border: `2px dashed ${dragOver ? 'var(--primary)' : 'var(--dark-border)'}`, borderRadius: 'var(--radius-sm)', padding: currentImg ? '16px' : '40px', background: dragOver ? 'rgba(255,94,0,0.05)' : 'var(--dark)', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', flexDirection: currentImg ? 'row' : 'column', alignItems: 'center', justifyContent: currentImg ? 'flex-start' : 'center', gap: '16px', position: 'relative' }}
+              style={{ border: `2px dashed ${dragOver ? 'var(--primary)' : 'var(--dark-border)'}`, borderRadius: 'var(--radius-sm)', padding: '40px', background: dragOver ? 'rgba(255,94,0,0.05)' : 'var(--dark)', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}
             >
-              {currentImg ? (
-                <>
-                  <div style={{ width: '80px', height: '80px', borderRadius: '10px', overflow: 'hidden', border: '2px solid var(--dark-border)', flexShrink: 0 }}>
-                    <img src={currentImg} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  </div>
-                  <div>
-                    <p style={{ margin: 0, fontWeight: 700, fontSize: '13px', color: 'var(--white)' }}>{imageFile ? imageFile.name : 'Current Image'}</p>
-                    <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--gray-1)' }}>Click or drop to replace</p>
-                  </div>
-                  <button type="button" onClick={e => { e.stopPropagation(); clearImage(); }} style={{ position: 'absolute', top: '10px', right: '10px', width: '24px', height: '24px', borderRadius: '50%', background: 'var(--danger)', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <X size={12} />
-                  </button>
-                </>
-              ) : (
-                <>
-                  <div style={{ width: '56px', height: '56px', borderRadius: '12px', background: 'rgba(255,94,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Upload size={24} color="var(--primary)" />
-                  </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <p style={{ margin: 0, fontWeight: 700, fontSize: '14px' }}>Drop image here or <span style={{ color: 'var(--primary)', textDecoration: 'underline' }}>browse</span></p>
-                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--gray-1)' }}>PNG, JPG, WEBP up to 10MB · Hosted via Cloudinary</p>
-                  </div>
-                </>
-              )}
+              <div style={{ width: '56px', height: '56px', borderRadius: '12px', background: 'rgba(255,94,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Upload size={24} color="var(--primary)" />
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: '14px' }}>Drop images here or <span style={{ color: 'var(--primary)', textDecoration: 'underline' }}>browse</span></p>
+                <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--gray-1)' }}>Upload multiple PNG, JPG, WEBP up to 10MB each</p>
+              </div>
             </div>
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={e => processFile(e.target.files[0])} style={{ display: 'none' }} />
+            <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={e => processFiles(e.target.files)} style={{ display: 'none' }} />
+            
+            {imagePreviews.length > 0 && (
+              <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', padding: '12px 0' }}>
+                {imagePreviews.map((img, idx) => (
+                  <div key={idx} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', border: '2px solid var(--dark-border)', flexShrink: 0 }}>
+                    <img src={img} alt={`Preview ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <button type="button" onClick={e => { e.stopPropagation(); clearImage(idx); }} style={{ position: 'absolute', top: '4px', right: '4px', width: '20px', height: '20px', borderRadius: '50%', background: 'var(--danger)', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <X size={10} />
+                    </button>
+                    {idx === 0 && (
+                      <div style={{ position: 'absolute', bottom: '0', left: '0', right: '0', background: 'var(--primary)', color: 'var(--black)', fontSize: '9px', fontWeight: 800, textAlign: 'center', padding: '2px' }}>MAIN</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </FieldGroup>
 
           {/* Featured Toggle */}

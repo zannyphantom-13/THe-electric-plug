@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, LogIn, ShieldCheck, Lock, Zap, Loader2 } from 'lucide-react';
 import { auth } from '../firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useApp } from '../context/AppContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -11,7 +12,16 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
+  const { user } = useApp();
   const navigate = useNavigate();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  // Navigate only after the user context is fully populated (including isAdmin)
+  React.useEffect(() => {
+    if (isLoggingIn && user) {
+      navigate('/');
+    }
+  }, [user, isLoggingIn, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -20,8 +30,8 @@ export default function Login() {
     
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // AppContext handles fetching the user document and roles automatically via onAuthStateChanged
-      navigate('/');
+      // Set flag to trigger navigation once AppContext has fetched user document
+      setIsLoggingIn(true);
     } catch (err) {
       console.error(err);
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {

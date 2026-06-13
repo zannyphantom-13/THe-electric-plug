@@ -52,8 +52,17 @@ export default function ProductDetails() {
 
   if (!product) return null;
 
+  // Extract images from product
+  const productImages = (product.images && product.images.length > 0) 
+    ? product.images 
+    : (product.image || product.imgUrl || product.img) 
+      ? [product.image || product.imgUrl || product.img] 
+      : [];
+
+  const hasImages = productImages.length > 0;
+
   // Provide a generic set of fallback icons if we can't map properly
-  const thumbnails = [
+  const fallbackThumbnails = [
     getProductIcon(product.category), 
     <Package size={48} strokeWidth={1} color="var(--gray-2)" />, 
     <Speaker size={48} strokeWidth={1} color="var(--gray-2)" />, 
@@ -72,27 +81,45 @@ export default function ProductDetails() {
         
         {/* 1. IMAGE GALLERY */}
         <div className="product-gallery">
-          <div className="pg-main">
+          <div className="pg-main" style={hasImages ? { padding: 0, overflow: 'hidden', display: 'block' } : {}}>
             {product.badge && (
-              <span className={`pg-badge ${product.badge === 'hot' ? 'hot' : product.badge === 'new' ? 'new' : ''}`}>
+              <span className={`pg-badge ${product.badge === 'hot' ? 'hot' : product.badge === 'new' ? 'new' : ''}`} style={hasImages ? { zIndex: 10 } : {}}>
                 {product.badge.toUpperCase()}
               </span>
             )}
-            <div style={{ transform: 'scale(2.5)' }}>
-              {thumbnails[activeThumb]}
-            </div>
+            
+            {hasImages ? (
+              <img src={productImages[activeThumb]} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            ) : (
+              <div style={{ transform: 'scale(2.5)' }}>
+                {fallbackThumbnails[activeThumb]}
+              </div>
+            )}
           </div>
           <div className="pg-thumbnails">
-            {thumbnails.map((thumb, idx) => (
-              <div 
-                key={idx}
-                className={`pg-thumb ${activeThumb === idx ? 'active' : ''}`}
-                onClick={() => setActiveThumb(idx)}
-                style={{ padding: '16px' }}
-              >
-                {thumb}
-              </div>
-            ))}
+            {hasImages ? (
+              productImages.map((img, idx) => (
+                <div 
+                  key={idx}
+                  className={`pg-thumb ${activeThumb === idx ? 'active' : ''}`}
+                  onClick={() => setActiveThumb(idx)}
+                  style={{ padding: 0, overflow: 'hidden' }}
+                >
+                  <img src={img} alt={`${product.name} thumbnail`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                </div>
+              ))
+            ) : (
+              fallbackThumbnails.map((thumb, idx) => (
+                <div 
+                  key={idx}
+                  className={`pg-thumb ${activeThumb === idx ? 'active' : ''}`}
+                  onClick={() => setActiveThumb(idx)}
+                  style={{ padding: '16px' }}
+                >
+                  {thumb}
+                </div>
+              ))
+            )}
           </div>
         </div>
 
