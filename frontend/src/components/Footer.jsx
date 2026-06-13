@@ -62,7 +62,7 @@ export default function Footer() {
               <span className="footer-contact-icon" style={{ color: 'var(--primary)' }}><PhoneCall size={20} /></span>
               <div className="footer-contact-text">
                 <strong>Customer Service</strong>
-                07066514355<br />
+                0903 227 2294<br />
                 09116763595<br />
                 Mon – Sat: 8am – 8pm
               </div>
@@ -85,7 +85,7 @@ export default function Footer() {
               <span className="footer-contact-icon" style={{ color: 'var(--primary)' }}><MessageSquare size={20} /></span>
               <div className="footer-contact-text">
                 <strong>WhatsApp</strong>
-                07066514355
+                0903 227 2294
               </div>
             </div>
           </div>
